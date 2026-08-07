@@ -7,8 +7,14 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { 
   Calendar, Tag, ArrowLeft, Image as ImageIcon, Globe, Terminal, 
   Drum, Utensils, Cpu, Code2, User, Sparkles, Folder, ArrowRight,
-  Briefcase, Mail, ExternalLink, Download, Clock
+  Briefcase, Mail, ExternalLink, Download, GraduationCap, Award, CheckCircle2, Phone, MapPin
 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+const markdownFiles = import.meta.glob('/src/content/posts/*/index.{zh,en}.md', { query: '?raw', import: 'default', eager: true });
+const imageFiles = import.meta.glob('/src/content/posts/*/*.{png,jpg,jpeg,webp,svg}', { eager: true });
 
 const GithubIcon = (props) => (
   <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -16,15 +22,7 @@ const GithubIcon = (props) => (
     <path d="M9 18c-4.51 2-5-2-7-2"></path>
   </svg>
 );
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
-// Vite 動態載入文章
-const markdownFiles = import.meta.glob('/src/content/posts/*/index.{zh,en}.md', { query: '?raw', import: 'default', eager: true });
-const imageFiles = import.meta.glob('/src/content/posts/*/*.{png,jpg,jpeg,webp,svg}', { eager: true });
-
-// 導覽頁籤
 const NAV_ITEMS = [
   { id: 'home', zh: '首頁', en: 'Home' },
   { id: 'blog', zh: '文章', en: 'Blog' },
@@ -33,7 +31,6 @@ const NAV_ITEMS = [
   { id: 'contact', zh: '聯絡', en: 'Contact' },
 ];
 
-// 分類定義
 const CATEGORIES = [
   { id: 'all', zh: '全部文章', en: 'All', icon: Sparkles },
   { id: '個人', zh: '個人', en: 'Personal', icon: User },
@@ -44,61 +41,166 @@ const CATEGORIES = [
   { id: '甜點', zh: '甜點', en: 'Desserts', icon: Utensils },
 ];
 
-// 示範專案列表
-const DUMMY_PROJECTS = [
-  {
-    id: 'ai-agent-framework',
-    title: 'Autonomous AI Agent Framework',
-    zhSummary: '基於 LLM 的多 Agent 協同架構，支援自動任務分解、工具呼叫與記憶檢索。',
-    enSummary: 'LLM-based multi-agent collaboration framework with task decomposition, tool use, and memory retrieval.',
-    tags: ['Python', 'PyTorch', 'FastAPI', 'LLM'],
-    category: 'AI',
-    github: 'https://github.com/jonahyian',
-    demo: 'https://github.com/jonahyian',
-  },
-  {
-    id: 'bilingual-markdown-blog',
-    title: 'Personal Folder-per-Post Blog',
-    zhSummary: '採用 Vite + React 與「資料夾即 Post」雙語模組化架構打造的極簡風格部落格。',
-    enSummary: 'A minimalist personal blog powered by Vite, React, and a folder-per-post bilingual architecture.',
-    tags: ['React', 'Vite', 'Tailwind CSS', 'shadcn/ui'],
-    category: '前端',
-    github: 'https://github.com/jonahyian/jonahyian.github.io',
-    demo: 'https://jonahyian.github.io',
+// 個人履歷資料庫 (RenderCV 權威數據)
+const CV_DATA = {
+  name: "Jonah Yen (顏苙峰)",
+  title: "AI Engineer (GenAI & Cloud Architecture)",
+  phone: "+886 917 515 581",
+  email: "a94763075@gmail.com",
+  location: "Taipei, Taiwan",
+  github: "https://github.com/a94763075",
+  summaryZh: "擁有 5 年以上實戰經驗的 AI 工程師，專精於 AI Agent 與多模態系統開發。擅長運用 MCP、RAG 及電腦視覺技術建構生產級應用。熟悉 LLMOps，能精準權衡成本與延遲，並運用 Kubernetes 於 GCP/AWS 部署高擴展性服務。",
+  summaryEn: "AI Engineer (4+ yrs) building production AI agents and multi-modal systems. Specialized in Agentic RAG + tool calling (MCP), retrieval at scale, and CV/ASR integrations. Shipped high-concurrency services over 10M+ corpora on GCP (Docker/Kubernetes).",
+  experiences: [
+    {
+      company: "Boldtek - Enterprise AI Solutions",
+      roleZh: "AI 工程師 (生成式 AI 與雲端架構)",
+      roleEn: "AI Engineer (GenAI & Cloud Architecture)",
+      period: "Sept 2025 – Present",
+      location: "Taipei, Taiwan",
+      bulletsZh: [
+        "主導架構基於 Model Context Protocol (MCP) 的 Agentic RAG 系統，實現支援多步推理與外部工具調用的企業級工作流。",
+        "於 GCP 環境透過 Kubernetes 導入完整 LLMOps 流程 (CI/CD、自動化評估)，大幅提升模型迭代效率。",
+        "優化 Contextual Retrieval 機制，結合 Knowledge Graphs 與混合搜尋策略，將問答準確率大幅提升至 94%。",
+        "導入 Prompt Caching 策略，成功降低 40% 推論延遲，顯著改善生產環境的使用者體驗。",
+        "建立工程文檔標準化流程，並透過 Code Review 制度指導團隊成員，提升整體程式碼品質。"
+      ],
+      bulletsEn: [
+        "Architected Agentic RAG with MCP + Google A2A for enterprise workflows; enabled multi-step tool calling.",
+        "Achieved 94% ExactMatch via multi-tenant RAG isolation + KG-powered hybrid retrieval (Vertex AI).",
+        "Reduced inference latency 40% via prompt caching for high-concurrency serving.",
+        "Orchestrated Multi-Agent MCPs on GKE with LLMOps pipelines for automated eval and scaling.",
+        "Mentored team through Code Reviews, established Documentation System to standardize engineering workflows."
+      ]
+    },
+    {
+      company: "Yourator - HR Tech Platform",
+      roleZh: "資料工程師 (Data Engineer)",
+      roleEn: "Data Engineer",
+      period: "Jan 2023 – Sept 2025",
+      location: "Taipei, Taiwan",
+      bulletsZh: [
+        "於 GCP Vertex AI 打造企業級 NER 履歷解析系統，導入完整 MLOps，在高流量負載下仍將營運成本降低 95%。",
+        "開發結合 Elasticsearch 與 Vector Embeddings 的混合推薦引擎，提升 20% 媒合精準度；並建置集中式 Feature Store，減少 70% 重複運算。",
+        "運用 ASR 技術與 Gemini API 實作自動化音訊分析管線，將面試數據轉化為具商業價值的 BI 洞察。"
+      ],
+      bulletsEn: [
+        "Owned end-to-end AI across Teamdoor & Yourator product lines (pipelines, serving, evaluation).",
+        "Cut serving costs 95% by shipping an enterprise NER resume parser on Vertex AI with full MLOps.",
+        "Improved job-matching accuracy 20% with a hybrid recommender (Elasticsearch + vector embeddings).",
+        "Built audio analysis pipelines with ASR + Gemini API to turn interview data into BI signals."
+      ]
+    },
+    {
+      company: "1111 人力銀行 (Global Chinese Group)",
+      roleZh: "資料科學家 (Data Scientist)",
+      roleEn: "Data Scientist",
+      period: "Sept 2022 – Jan 2023",
+      location: "Taipei, Taiwan",
+      bulletsZh: [
+        "運用 AWS (ECS/ALB) 與 Faiss 重構高流量推薦架構，將記憶體需求從 8GB 銳減至 400MB，並將延遲壓低至 200ms 以下。",
+        "部署 BERT-based NER 模型以優化搜尋系統，每日處理 2 萬次以上查詢，準確率達 89%。"
+      ],
+      bulletsEn: [
+        "Reduced memory 8GB → 400MB and P95 <200ms by refactoring recommendation serving on production.",
+        "Served 20k+ daily queries with 89% accuracy finetuning BERT-based NER for query understanding."
+      ]
+    },
+    {
+      company: "Renthop (US Real Estate Platform)",
+      roleZh: "資料工程師 (Data Engineer)",
+      roleEn: "Data Engineer (Remote)",
+      period: "May 2021 – June 2022",
+      location: "New York, US (Remote)",
+      bulletsZh: [
+        "將電腦視覺模型 (ResNet) 整合至資料管線，實現房產圖片分類與內容理解自動化。",
+        "使用 Airflow 設計並維運 20+ 條 ETL 流程，確保跨來源資料擷取的穩定性。"
+      ],
+      bulletsEn: [
+        "Integrated ResNet image classification into data pipelines to enable property content understanding features.",
+        "Designed and maintained 20+ Airflow ETL workflows for reliable ingestion from external sources."
+      ]
+    }
+  ],
+  education: [
+    {
+      schoolZh: "國立臺灣科技大學 (NTUST)",
+      schoolEn: "National Taiwan University of Science and Technology",
+      degreeZh: "資訊工程碩士 (GPA 4.08 / 4.3)",
+      degreeEn: "M.S. in Computer Science (GPA 4.08/4.3)",
+      period: "2017 – 2020",
+      detailsZh: [
+        "研究領域：專注於 Neural Retrieval (神經檢索) 與語言模型 (現代 RAG 技術基石)。",
+        "IEEE ICASSP 2020 論文發表: A Neural Document Language Modeling Framework (獲 IEEE 補助)",
+        "IEEE ICASSP 2019 論文發表: Generating Pseudo-relevant Representations for Spoken Document Retrieval"
+      ],
+      detailsEn: [
+        "Research: Neural Retrieval & Language Modeling (foundations of modern RAG).",
+        "IEEE ICASSP 2020 Paper: A Neural Document Language Modeling Framework (Awarded IEEE Grant)",
+        "IEEE ICASSP 2019 Paper: Generating Pseudo-relevant Representations for Spoken Document Retrieval"
+      ]
+    },
+    {
+      schoolZh: "天主教輔仁大學 (FJU)",
+      schoolEn: "Fu Jen Catholic University",
+      degreeZh: "資訊工程學士 (平均 85.6)",
+      degreeEn: "B.S. in Computer Science",
+      period: "2013 – 2017",
+      detailsZh: [
+        "獲獎紀錄：ACM-ICPC 亞洲區賽 (解出 2 題) & 全國大專程式競賽榮譽獎 (National Honorable Mention)"
+      ],
+      detailsEn: [
+        "Awards: ACM-ICPC Asia Regional Contest & National Programming Contest Honorable Mention"
+      ]
+    }
+  ],
+  projects: [
+    {
+      title: "Taiwan Legal MCP Server (Agent System)",
+      period: "2025",
+      zhDesc: "AI 驅動法律知識系統：開發符合 Model Context Protocol (MCP) 標準的 Multi-Agent 系統，整合 LangGraph 與 Elasticsearch RAG，解決跨 12+ 個法規資料庫的複雜法律推理難題。",
+      enDesc: "AI-Powered Legal Knowledge System: Built a Multi-Agent System implementing MCP to standardize tool interfaces. Orchestrated LangGraph with Elasticsearch RAG across 12+ law collections.",
+      tags: ["MCP", "LangGraph", "Elasticsearch", "RAG", "Python"]
+    }
+  ],
+  skills: {
+    ai: "Agentic RAG, MCP, Tool Calling, LangChain, Semantic Kernel, Prompt Engineering",
+    vision: "Computer Vision (ResNet/ViT), Image Classification, Multi-modal RAG, ASR integration",
+    cloud: "GCP (Vertex AI, BigQuery, Cloud Run), AWS, Docker, Kubernetes, CI/CD, MLflow",
+    data: "Vector DBs (Faiss, Weaviate), Elasticsearch, Knowledge Graphs (Neo4j), Python, SQL"
   }
-];
+};
 
-// UI 文字對應
 const UI_TEXT = {
   zh: {
-    blogTitle: "Jonah Yian",
+    blogTitle: "Jonah Yen",
     blogSubtitle: "AI Engineer & Jazz Drummer",
-    heroTitle: "嗨，我是 Jonah 👋",
-    heroRole: "AI 工程師 / 全棧開發者 / 爵士鼓手",
-    heroBio: "專注於 AI 模型與現代 Web 應用開發。堅持「程式碼可讀性高於一切」，生活離不開爵士鼓的切分音與法式甜點。",
+    heroTitle: "嗨，我是 顏苙峰 (Jonah) 👋",
+    heroRole: "AI 工程師 (GenAI & 雲端架構) / 爵士鼓手",
+    heroBio: "擁有 5 年以上實戰經驗的 AI 工程師，專精於 AI Agent (MCP / RAG) 與多模態系統開發。對程式碼秉持「可讀性高於一切」，生活離不開爵士鼓與法式甜點。",
     viewProjects: "查看專案作品",
-    readBlog: "閱讀最新隨筆",
+    readBlog: "閱讀技術隨筆",
     featuredPosts: "精選文章",
     featuredProjects: "亮點專案",
     viewAllPosts: "查看所有文章",
     viewAllProjects: "查看所有專案",
     allPosts: "文章列表",
     projectsTitle: "專案作品集",
-    resumeTitle: "個人履歷與經歷",
+    resumeTitle: "專業履歷與經歷 (Curriculum Vitae)",
     contactTitle: "保持聯繫",
     backToList: "返回文章列表",
     noCover: "無封面圖",
     readMore: "閱讀內文",
     noPostsCategory: "這個分類還沒有寫文章，敬請期待！",
     downloadCv: "下載 PDF 履歷",
-    contactDesc: "不論是 AI 技術討論、專案合作或是爵士鼓交流，都歡迎隨時與我聯繫！",
+    contactDesc: "不論是 AI Agent 合作、雲端架構討論或是爵士鼓交流，都歡迎隨時與我聯繫！",
   },
   en: {
-    blogTitle: "Jonah Yian",
+    blogTitle: "Jonah Yen",
     blogSubtitle: "AI Engineer & Jazz Drummer",
-    heroTitle: "Hi, I'm Jonah 👋",
-    heroRole: "AI Engineer / Fullstack Developer / Jazz Drummer",
-    heroBio: "Focused on AI models and modern web engineering. Passionate about readable code, jazz drum grooves, and French pastries.",
+    heroTitle: "Hi, I'm Jonah Yen 👋",
+    heroRole: "AI Engineer (GenAI & Cloud Architecture) / Jazz Drummer",
+    heroBio: "AI Engineer with 4+ yrs experience building production AI Agents (MCP/RAG) and multi-modal systems. Passionate about readable code, jazz drum grooves, and French pastries.",
     viewProjects: "View Projects",
     readBlog: "Read Blog",
     featuredPosts: "Featured Posts",
@@ -107,14 +209,14 @@ const UI_TEXT = {
     viewAllProjects: "View All Projects",
     allPosts: "Articles",
     projectsTitle: "Projects",
-    resumeTitle: "Resume & Experience",
+    resumeTitle: "Curriculum Vitae",
     contactTitle: "Get In Touch",
     backToList: "Back to Articles",
     noCover: "No Cover",
     readMore: "Read Article",
     noPostsCategory: "No posts in this category yet. Stay tuned!",
-    downloadCv: "Download CV",
-    contactDesc: "Whether it's about AI, fullstack collaboration, or jazz drumming, feel free to reach out!",
+    downloadCv: "Download PDF CV",
+    contactDesc: "Whether it's about AI Agents, cloud architecture, or jazz drumming, feel free to reach out!",
   }
 };
 
@@ -159,7 +261,7 @@ const allPostsMap = parsePosts();
 
 export default function App() {
   const [lang, setLang] = useState('zh');
-  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'blog' | 'projects' | 'resume' | 'contact'
+  const [activeTab, setActiveTab] = useState('home');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSlug, setSelectedSlug] = useState(null);
 
@@ -181,10 +283,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-zinc-200 font-sans selection:bg-amber-500 selection:text-zinc-950">
-      {/* Header / Navigation Bar */}
+      {/* Navigation Header */}
       <header className="border-b border-zinc-800/60 bg-[#0d1117]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Brand Logo */}
           <div 
             className="flex items-center gap-3 cursor-pointer group" 
             onClick={() => { setActiveTab('home'); setSelectedSlug(null); setSelectedCategory('all'); }}
@@ -199,7 +300,6 @@ export default function App() {
             </span>
           </div>
 
-          {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1 bg-zinc-900/60 border border-zinc-800/80 p-1 rounded-full text-xs font-medium">
             {NAV_ITEMS.map(item => {
               const isActive = activeTab === item.id && !selectedSlug;
@@ -220,7 +320,6 @@ export default function App() {
             })}
           </nav>
 
-          {/* i18n Switcher */}
           <div className="flex items-center gap-1 bg-zinc-900/90 border border-zinc-800/80 p-1 rounded-full text-xs font-mono">
             <Globe className="w-3.5 h-3.5 text-zinc-400 ml-2 mr-1" />
             <Button
@@ -242,7 +341,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Mobile Navigation Bar */}
+        {/* Mobile Nav */}
         <div className="md:hidden flex items-center justify-around border-t border-zinc-800/60 px-4 py-2 bg-zinc-950/40 text-xs">
           {NAV_ITEMS.map(item => {
             const isActive = activeTab === item.id && !selectedSlug;
@@ -265,7 +364,7 @@ export default function App() {
       {/* Main Content Area */}
       <main className="max-w-5xl mx-auto px-6 py-12">
         {selectedSlug ? (
-          /* 文章內文閱讀頁 */
+          /* 文章內文頁面 */
           <div className="max-w-3xl mx-auto space-y-8">
             <Button
               variant="ghost"
@@ -362,12 +461,10 @@ export default function App() {
             )}
           </div>
         ) : (
-          /* 根據 Active Tab 渲染對應主分頁 */
           <>
             {/* 1. HOME 頁面 */}
             {activeTab === 'home' && (
               <div className="space-y-16">
-                {/* Hero Section */}
                 <div className="space-y-6 pt-4 border-b border-zinc-800/60 pb-12">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono">
                     <Sparkles className="w-3.5 h-3.5" />
@@ -388,15 +485,15 @@ export default function App() {
                     </Button>
                     <Button 
                       variant="outline" 
-                      onClick={() => setActiveTab('blog')}
+                      onClick={() => setActiveTab('resume')}
                       className="border-zinc-800 hover:border-zinc-700 text-zinc-300 rounded-full px-6"
                     >
-                      {t.readBlog}
+                      {t.resumeTitle}
                     </Button>
                   </div>
                 </div>
 
-                {/* Featured Posts (精選最新文章) */}
+                {/* 精選最新文章 */}
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
@@ -468,7 +565,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Featured Projects (精選專案展示) */}
+                {/* 精選專案 */}
                 <div className="space-y-6 pt-4 border-t border-zinc-800/60">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
@@ -485,33 +582,22 @@ export default function App() {
                     </Button>
                   </div>
 
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {DUMMY_PROJECTS.map(project => (
-                      <Card key={project.id} className="flex flex-col justify-between p-5 space-y-4">
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <Badge variant="amber">{project.category}</Badge>
-                            <div className="flex gap-2">
-                              <a href={project.github} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-white">
-                                <GithubIcon className="w-4 h-4" />
-                              </a>
-                              <a href={project.demo} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400">
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            </div>
-                          </div>
-
-                          <h3 className="text-lg font-semibold text-zinc-100">{project.title}</h3>
-                          <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">
-                            {lang === 'en' ? project.enSummary : project.zhSummary}
-                          </p>
+                  <div className="grid gap-6 md:grid-cols-1">
+                    {CV_DATA.projects.map(project => (
+                      <Card key={project.title} className="p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="amber">{project.period}</Badge>
+                          <a href={CV_DATA.github} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-white flex items-center gap-1 text-xs font-mono">
+                            <GithubIcon className="w-4 h-4" /> GitHub
+                          </a>
                         </div>
-
-                        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-zinc-800/60">
+                        <h3 className="text-xl font-bold text-zinc-100">{project.title}</h3>
+                        <p className="text-sm text-zinc-300 leading-relaxed">
+                          {lang === 'en' ? project.enDesc : project.zhDesc}
+                        </p>
+                        <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/60">
                           {project.tags.map(tag => (
-                            <Badge key={tag} variant="outline" className="text-[10px]">
-                              {tag}
-                            </Badge>
+                            <Badge key={tag} variant="outline">{tag}</Badge>
                           ))}
                         </div>
                       </Card>
@@ -521,7 +607,7 @@ export default function App() {
               </div>
             )}
 
-            {/* 2. BLOG 文章列表頁 */}
+            {/* 2. BLOG 頁面 */}
             {activeTab === 'blog' && (
               <div className="space-y-8">
                 <div>
@@ -534,7 +620,6 @@ export default function App() {
                   </p>
                 </div>
 
-                {/* 分類篩選 Bar */}
                 <div className="flex flex-wrap gap-2 pb-2 border-b border-zinc-800/80">
                   {CATEGORIES.map(cat => {
                     const IconComp = cat.icon;
@@ -560,7 +645,6 @@ export default function App() {
                   })}
                 </div>
 
-                {/* 文章列表 */}
                 {filteredPosts.length > 0 ? (
                   <div className="grid gap-6 md:grid-cols-2">
                     {filteredPosts.map(post => (
@@ -623,7 +707,7 @@ export default function App() {
               </div>
             )}
 
-            {/* 3. PROJECTS 專案頁面 */}
+            {/* 3. PROJECTS 頁面 */}
             {activeTab === 'projects' && (
               <div className="space-y-8">
                 <div>
@@ -632,37 +716,26 @@ export default function App() {
                     {t.projectsTitle}
                   </h2>
                   <p className="text-zinc-400 text-sm mt-1">
-                    {lang === 'en' ? 'Showcasing AI models, Fullstack applications, and open source projects.' : '展示 AI 模型開發、全棧網頁應用與開源專案。'}
+                    {lang === 'en' ? 'Showcasing AI Agents, Multi-modal RAG systems, and Cloud architecture.' : '展示 AI Agent 系統、多模態 RAG 架構與雲端開發實績。'}
                   </p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2">
-                  {DUMMY_PROJECTS.map(project => (
-                    <Card key={project.id} className="flex flex-col justify-between p-6 space-y-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="amber">{project.category}</Badge>
-                          <div className="flex gap-2">
-                            <a href={project.github} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-white p-1">
-                              <GithubIcon className="w-4 h-4" />
-                            </a>
-                            <a href={project.demo} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-amber-400 p-1">
-                              <ExternalLink className="w-4 h-4" />
-                            </a>
-                          </div>
-                        </div>
-
-                        <h3 className="text-xl font-bold text-zinc-100">{project.title}</h3>
-                        <p className="text-sm text-zinc-400 leading-relaxed">
-                          {lang === 'en' ? project.enSummary : project.zhSummary}
-                        </p>
+                <div className="grid gap-6 md:grid-cols-1">
+                  {CV_DATA.projects.map(project => (
+                    <Card key={project.title} className="p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="amber">{project.period}</Badge>
+                        <a href={CV_DATA.github} target="_blank" rel="noreferrer" className="text-zinc-400 hover:text-white flex items-center gap-1 text-xs font-mono">
+                          <GithubIcon className="w-4 h-4" /> GitHub
+                        </a>
                       </div>
-
-                      <div className="flex flex-wrap gap-2 pt-3 border-t border-zinc-800/60">
+                      <h3 className="text-xl font-bold text-zinc-100">{project.title}</h3>
+                      <p className="text-sm text-zinc-300 leading-relaxed">
+                        {lang === 'en' ? project.enDesc : project.zhDesc}
+                      </p>
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/60">
                         {project.tags.map(tag => (
-                          <Badge key={tag} variant="outline">
-                            {tag}
-                          </Badge>
+                          <Badge key={tag} variant="outline">{tag}</Badge>
                         ))}
                       </div>
                     </Card>
@@ -671,54 +744,131 @@ export default function App() {
               </div>
             )}
 
-            {/* 4. RESUME 履歷經歷頁面 */}
+            {/* 4. RESUME 頁面 (根據 RenderCV 完整呈現) */}
             {activeTab === 'resume' && (
-              <div className="space-y-10 max-w-3xl">
-                <div className="flex items-center justify-between border-b border-zinc-800/60 pb-6">
+              <div className="space-y-12 max-w-4xl mx-auto">
+                {/* Header Profile */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-800/80 pb-6 gap-4">
                   <div>
-                    <h2 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
-                      <Briefcase className="w-6 h-6 text-amber-400" />
-                      {t.resumeTitle}
-                    </h2>
-                    <p className="text-zinc-400 text-sm mt-1">
-                      {t.heroRole}
-                    </p>
+                    <h1 className="text-3xl font-extrabold text-zinc-100">{CV_DATA.name}</h1>
+                    <p className="text-amber-400 font-mono text-sm mt-1">{CV_DATA.title}</p>
+                    <div className="flex flex-wrap gap-4 text-xs font-mono text-zinc-400 mt-3">
+                      <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-zinc-500" /> {CV_DATA.location}</span>
+                      <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5 text-zinc-500" /> {CV_DATA.phone}</span>
+                      <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-zinc-500" /> {CV_DATA.email}</span>
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm" className="rounded-full gap-2 border-zinc-800">
-                    <Download className="w-4 h-4" /> {t.downloadCv}
-                  </Button>
+                  <a href="/Jonah_Yen_CV.pdf" download="Jonah_Yen_CV.pdf">
+                    <Button variant="outline" className="rounded-full gap-2 border-zinc-700 hover:border-amber-500/60 hover:text-amber-400">
+                      <Download className="w-4 h-4" /> {t.downloadCv}
+                    </Button>
+                  </a>
                 </div>
 
-                {/* Timeline */}
-                <div className="space-y-8 border-l border-zinc-800/80 pl-6 ml-2">
-                  <div className="relative space-y-2">
-                    <div className="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-amber-400 ring-4 ring-zinc-950" />
-                    <span className="text-xs font-mono text-amber-400 font-semibold">2024 — Present</span>
-                    <h3 className="text-lg font-bold text-zinc-100">Senior AI Engineer</h3>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      {lang === 'en' 
-                        ? 'Leading LLM Agent framework architecture, fine-tuning domain models, and deploying scalable inference pipelines.'
-                        : '主導 LLM Agent 框架架構設計、領域大模型微調，並負責高吞吐推論流水線部署。'}
-                    </p>
-                  </div>
+                {/* Summary */}
+                <div className="space-y-3">
+                  <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2 border-b border-zinc-800/60 pb-2">
+                    <User className="w-5 h-5 text-amber-400" /> Summary
+                  </h2>
+                  <p className="text-zinc-300 text-sm leading-relaxed">
+                    {lang === 'en' ? CV_DATA.summaryEn : CV_DATA.summaryZh}
+                  </p>
+                </div>
 
-                  <div className="relative space-y-2">
-                    <div className="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-zinc-600 ring-4 ring-zinc-950" />
-                    <span className="text-xs font-mono text-zinc-500">2022 — 2024</span>
-                    <h3 className="text-lg font-bold text-zinc-100">Fullstack Engineer</h3>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      {lang === 'en' 
-                        ? 'Built high-performance React dashboard, integrated WebSocket live streams, and maintained microservice APIs.'
-                        : '開發高效能 React 儀表板、整合 WebSocket 即時數據流，並維護後端微服務 API。'}
-                    </p>
+                {/* Experience */}
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2 border-b border-zinc-800/60 pb-2">
+                    <Briefcase className="w-5 h-5 text-amber-400" /> Experience
+                  </h2>
+
+                  <div className="space-y-8 border-l border-zinc-800/80 pl-6 ml-2">
+                    {CV_DATA.experiences.map((exp, idx) => (
+                      <div key={idx} className="relative space-y-3">
+                        <div className="absolute -left-[31px] top-1.5 w-2.5 h-2.5 rounded-full bg-amber-400 ring-4 ring-zinc-950" />
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                          <div>
+                            <h3 className="text-lg font-bold text-zinc-100">
+                              {lang === 'en' ? exp.roleEn : exp.roleZh}
+                            </h3>
+                            <span className="text-amber-400/90 text-sm font-medium">{exp.company}</span>
+                          </div>
+                          <div className="text-xs font-mono text-zinc-500 mt-1 sm:mt-0">
+                            <span>{exp.period}</span> | <span>{exp.location}</span>
+                          </div>
+                        </div>
+
+                        <ul className="space-y-2 text-zinc-300 text-xs sm:text-sm leading-relaxed list-disc list-inside">
+                          {(lang === 'en' ? exp.bulletsEn : exp.bulletsZh).map((bullet, i) => (
+                            <li key={i} className="text-zinc-300">{bullet}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Skills */}
+                <div className="space-y-4">
+                  <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2 border-b border-zinc-800/60 pb-2">
+                    <Cpu className="w-5 h-5 text-amber-400" /> Technical Skills
+                  </h2>
+
+                  <div className="grid gap-4 sm:grid-cols-2 text-xs font-mono">
+                    <Card className="p-4 space-y-2">
+                      <span className="text-amber-400 font-semibold">AI Agents & LLMs</span>
+                      <p className="text-zinc-300 font-sans text-xs">{CV_DATA.skills.ai}</p>
+                    </Card>
+                    <Card className="p-4 space-y-2">
+                      <span className="text-amber-400 font-semibold">Multi-modal & Vision</span>
+                      <p className="text-zinc-300 font-sans text-xs">{CV_DATA.skills.vision}</p>
+                    </Card>
+                    <Card className="p-4 space-y-2">
+                      <span className="text-amber-400 font-semibold">LLMOps & Cloud</span>
+                      <p className="text-zinc-300 font-sans text-xs">{CV_DATA.skills.cloud}</p>
+                    </Card>
+                    <Card className="p-4 space-y-2">
+                      <span className="text-amber-400 font-semibold">Data & Search</span>
+                      <p className="text-zinc-300 font-sans text-xs">{CV_DATA.skills.data}</p>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Education */}
+                <div className="space-y-6">
+                  <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2 border-b border-zinc-800/60 pb-2">
+                    <GraduationCap className="w-5 h-5 text-amber-400" /> Education
+                  </h2>
+
+                  <div className="space-y-6">
+                    {CV_DATA.education.map((edu, idx) => (
+                      <Card key={idx} className="p-5 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between">
+                          <div>
+                            <h3 className="text-base font-bold text-zinc-100">
+                              {lang === 'en' ? edu.schoolEn : edu.schoolZh}
+                            </h3>
+                            <span className="text-amber-400 text-xs font-mono">
+                              {lang === 'en' ? edu.degreeEn : edu.degreeZh}
+                            </span>
+                          </div>
+                          <span className="text-xs font-mono text-zinc-500 mt-1 sm:mt-0">{edu.period}</span>
+                        </div>
+
+                        <ul className="space-y-1.5 text-xs text-zinc-400 list-disc list-inside">
+                          {(lang === 'en' ? edu.detailsEn : edu.detailsZh).map((detail, i) => (
+                            <li key={i}>{detail}</li>
+                          ))}
+                        </ul>
+                      </Card>
+                    ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* 5. CONTACT 聯絡頁面 */}
+            {/* 5. CONTACT 頁面 */}
             {activeTab === 'contact' && (
-              <div className="space-y-8 max-w-2xl">
+              <div className="space-y-8 max-w-2xl mx-auto">
                 <div>
                   <h2 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
                     <Mail className="w-6 h-6 text-amber-400" />
@@ -729,36 +879,34 @@ export default function App() {
                   </p>
                 </div>
 
-                <Card className="p-6 space-y-6">
-                  <div className="space-y-4">
-                    <a 
-                      href="mailto:a94763075@163.com" 
-                      className="flex items-center gap-4 p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/60 hover:border-amber-500/50 transition-colors group"
-                    >
-                      <div className="p-3 rounded-lg bg-amber-500/10 text-amber-400">
-                        <Mail className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span className="text-xs font-mono text-zinc-500">Email</span>
-                        <p className="text-sm font-medium text-zinc-200 group-hover:text-amber-400">a94763075@163.com</p>
-                      </div>
-                    </a>
+                <Card className="p-6 space-y-4">
+                  <a 
+                    href={`mailto:${CV_DATA.email}`} 
+                    className="flex items-center gap-4 p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/60 hover:border-amber-500/50 transition-colors group"
+                  >
+                    <div className="p-3 rounded-lg bg-amber-500/10 text-amber-400">
+                      <Mail className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-mono text-zinc-500">Email</span>
+                      <p className="text-sm font-medium text-zinc-200 group-hover:text-amber-400">{CV_DATA.email}</p>
+                    </div>
+                  </a>
 
-                    <a 
-                      href="https://github.com/jonahyian" 
-                      target="_blank" 
-                      rel="noreferrer"
-                      className="flex items-center gap-4 p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/60 hover:border-amber-500/50 transition-colors group"
-                    >
-                      <div className="p-3 rounded-lg bg-zinc-800 text-zinc-200">
-                        <GithubIcon className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <span className="text-xs font-mono text-zinc-500">GitHub</span>
-                        <p className="text-sm font-medium text-zinc-200 group-hover:text-amber-400">github.com/jonahyian</p>
-                      </div>
-                    </a>
-                  </div>
+                  <a 
+                    href={CV_DATA.github} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="flex items-center gap-4 p-4 rounded-xl bg-zinc-950/60 border border-zinc-800/60 hover:border-amber-500/50 transition-colors group"
+                  >
+                    <div className="p-3 rounded-lg bg-zinc-800 text-zinc-200">
+                      <GithubIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-mono text-zinc-500">GitHub</span>
+                      <p className="text-sm font-medium text-zinc-200 group-hover:text-amber-400">github.com/a94763075</p>
+                    </div>
+                  </a>
                 </Card>
               </div>
             )}
@@ -766,9 +914,8 @@ export default function App() {
         )}
       </main>
 
-      {/* 頁腳 Footer */}
       <footer className="border-t border-zinc-800/60 mt-20 py-8 text-center text-xs font-mono text-zinc-600">
-        <p>© 2026 Jonah Yian. Built with React, Vite, shadcn/ui & Tailwind CSS.</p>
+        <p>© 2026 Jonah Yen (顏苙峰). Built with React, Vite, RenderCV Data & Tailwind CSS.</p>
       </footer>
     </div>
   );
