@@ -421,6 +421,25 @@ export default function App() {
                       blockquote: ({ node, ...props }) => (
                         <blockquote className="border-l-2 border-amber-500/80 bg-amber-500/5 pl-4 py-3 my-6 rounded-r-md text-zinc-300 italic" {...props} />
                       ),
+                      img: ({ node, src, alt, ...props }) => {
+                        // 解析相對路徑 (例如 ./pgvector.jpg)
+                        let resolvedSrc = src;
+                        if (src && (src.startsWith('./') || !src.startsWith('http'))) {
+                          const cleanSrc = src.replace(/^\.\//, '');
+                          const matchedImgKey = Object.keys(imageFiles).find(key => 
+                            key.includes(`/posts/${selectedPost.slug}/${cleanSrc}`)
+                          );
+                          if (matchedImgKey && imageFiles[matchedImgKey]) {
+                            resolvedSrc = imageFiles[matchedImgKey].default;
+                          }
+                        }
+                        return (
+                          <span className="block my-6 rounded-xl overflow-hidden border border-zinc-800/80 shadow-xl bg-zinc-950">
+                            <img src={resolvedSrc} alt={alt} className="w-full object-cover max-h-[460px]" {...props} />
+                            {alt && <span className="block text-center text-xs font-mono text-zinc-500 py-2 border-t border-zinc-800/60 bg-zinc-900/40">{alt}</span>}
+                          </span>
+                        );
+                      },
                       code({ node, inline, className, children, ...props }) {
                         const match = /language-(\w+)/.exec(className || '');
                         const language = match ? match[1] : '';
