@@ -4,48 +4,45 @@ import remarkGfm from 'remark-gfm';
 import fm from 'front-matter';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { BookOpen, Calendar, Tag, ArrowLeft, Folder, Image as ImageIcon, Globe, Layers } from 'lucide-react';
+import { Calendar, Tag, ArrowLeft, Image as ImageIcon, Globe, Terminal, Drum, Utensils, Cpu, Code2, User, Sparkles } from 'lucide-react';
 
-// 使用 Vite 載入所有 .zh.md 與 .en.md 檔案的原始內容
 const markdownFiles = import.meta.glob('/src/content/posts/*/index.{zh,en}.md', { query: '?raw', import: 'default', eager: true });
 const imageFiles = import.meta.glob('/src/content/posts/*/*.{png,jpg,jpeg,webp,svg}', { eager: true });
 
-// 分類定義與對應名稱
+// 分類與圖示搭配（精緻有機設計）
 const CATEGORIES = [
-  { id: 'all', zh: '全部文章', en: 'All' },
-  { id: '個人', zh: '個人', en: 'Personal' },
-  { id: 'AI', zh: 'AI', en: 'AI' },
-  { id: '前端', zh: '前端', en: 'Frontend' },
-  { id: '後端', zh: '後端', en: 'Backend' },
-  { id: '爵士鼓', zh: '爵士鼓', en: 'Jazz Drums' },
-  { id: '甜點', zh: '甜點', en: 'Desserts' },
+  { id: 'all', zh: '全部文章', en: 'All', icon: Sparkles },
+  { id: '個人', zh: '個人', en: 'Personal', icon: User },
+  { id: 'AI', zh: 'AI', en: 'AI', icon: Cpu },
+  { id: '前端', zh: '前端', en: 'Frontend', icon: Code2 },
+  { id: '後端', zh: '後端', en: 'Backend', icon: Terminal },
+  { id: '爵士鼓', zh: '爵士鼓', en: 'Jazz Drums', icon: Drum },
+  { id: '甜點', zh: '甜點', en: 'Desserts', icon: Utensils },
 ];
 
-// UI 常數與多語言對應表
 const UI_TEXT = {
   zh: {
-    blogTitle: "Jonah's Blog",
-    allPosts: "文章列表",
+    blogTitle: "Jonah Yian",
+    blogSubtitle: "AI Engineer & Jazz Drummer",
+    allPosts: "最新文章",
     backToList: "返回文章列表",
     noCover: "無封面圖",
-    readMore: "閱讀全文",
-    subtitle: "分享 AI 技術、前後端開發、爵士鼓手隨筆與甜點探索。",
-    badge: "i18n & Category Enabled",
-    noPostsCategory: "此分類下暫無文章",
+    readMore: "閱讀內文",
+    bio: "專注於 AI / 機器學習與前後端開發。寫程式講求可讀性，生活離不開爵士鼓的切分音與法式甜點。",
+    noPostsCategory: "這個分類還沒有寫文章，敬請期待！",
   },
   en: {
-    blogTitle: "Jonah's Blog",
-    allPosts: "Posts",
-    backToList: "Back to Posts",
-    noCover: "No Cover Image",
-    readMore: "Read More",
-    subtitle: "Sharing thoughts on AI, Fullstack Dev, Jazz Drums, and Desserts.",
-    badge: "i18n & Category Enabled",
-    noPostsCategory: "No posts in this category yet",
+    blogTitle: "Jonah Yian",
+    blogSubtitle: "AI Engineer & Jazz Drummer",
+    allPosts: "Articles",
+    backToList: "Back to Articles",
+    noCover: "No Cover",
+    readMore: "Read Article",
+    bio: "Focused on AI/ML and fullstack engineering. Passionate about clean readable code, jazz drum grooves, and French pastry exploration.",
+    noPostsCategory: "No posts in this category yet. Stay tuned!",
   }
 };
 
-// 剖析 Markdown 與 Frontmatter
 const parsePosts = () => {
   const postsMap = { zh: [], en: [] };
 
@@ -65,7 +62,6 @@ const parsePosts = () => {
     const postObj = {
       slug,
       lang,
-      folderPath: `src/content/posts/${slug}/index.${lang}.md`,
       coverUrl,
       title: data.title || slug,
       date: data.date || '',
@@ -87,16 +83,13 @@ const parsePosts = () => {
 const allPostsMap = parsePosts();
 
 export default function App() {
-  const [lang, setLang] = useState('zh'); // 當前語言: 'zh' 或 'en'
-  const [selectedCategory, setSelectedCategory] = useState('all'); // 選擇的分類
+  const [lang, setLang] = useState('zh');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSlug, setSelectedSlug] = useState(null);
 
   const t = UI_TEXT[lang];
-
-  // 取得當前語言的文章列表
   const currentPosts = allPostsMap[lang].length > 0 ? allPostsMap[lang] : allPostsMap.zh;
 
-  // 依分類過濾文章
   const filteredPosts = selectedCategory === 'all'
     ? currentPosts
     : currentPosts.filter(p => {
@@ -111,104 +104,118 @@ export default function App() {
   const selectedPost = currentPosts.find(p => p.slug === selectedSlug);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setSelectedSlug(null); setSelectedCategory('all'); }}>
-            <div className="p-2 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
-              <Folder className="w-5 h-5" />
+    <div className="min-h-screen bg-[#0d1117] text-zinc-200 font-sans selection:bg-amber-500 selection:text-zinc-950">
+      {/* 頂部極簡導覽列 Header */}
+      <header className="border-b border-zinc-800/60 bg-[#0d1117]/80 backdrop-blur-md sticky top-0 z-50">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div 
+            className="flex items-center gap-3 cursor-pointer group" 
+            onClick={() => { setSelectedSlug(null); setSelectedCategory('all'); }}
+          >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-orange-400 p-[1px] shadow-sm">
+              <div className="w-full h-full bg-zinc-950 rounded-full flex items-center justify-center font-mono font-bold text-xs text-amber-400">
+                JY
+              </div>
             </div>
-            <span className="font-bold text-lg tracking-wide text-white">{t.blogTitle}</span>
+            <div>
+              <span className="font-semibold text-zinc-100 group-hover:text-amber-400 transition-colors tracking-tight">
+                {t.blogTitle}
+              </span>
+              <span className="hidden sm:inline-block ml-2 text-xs text-zinc-500 font-mono">
+                / {t.blogSubtitle}
+              </span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* 語言切換按鈕 (i18n Switcher) */}
-            <div className="flex items-center bg-slate-800/90 rounded-lg p-1 border border-slate-700">
-              <Globe className="w-3.5 h-3.5 text-slate-400 ml-2 mr-1" />
-              <button
-                onClick={() => setLang('zh')}
-                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
-                  lang === 'zh' ? 'bg-indigo-600 text-white font-medium shadow' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                中文
-              </button>
-              <button
-                onClick={() => setLang('en')}
-                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
-                  lang === 'en' ? 'bg-indigo-600 text-white font-medium shadow' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                EN
-              </button>
-            </div>
+          {/* 語言切換選單 */}
+          <div className="flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800/80 p-1 rounded-full text-xs font-mono">
+            <Globe className="w-3.5 h-3.5 text-zinc-400 ml-2 mr-0.5" />
+            <button
+              onClick={() => setLang('zh')}
+              className={`px-3 py-1 rounded-full transition-all ${
+                lang === 'zh' ? 'bg-amber-500/20 text-amber-300 font-medium border border-amber-500/30' : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              繁體中文
+            </button>
+            <button
+              onClick={() => setLang('en')}
+              className={`px-3 py-1 rounded-full transition-all ${
+                lang === 'en' ? 'bg-amber-500/20 text-amber-300 font-medium border border-amber-500/30' : 'text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              EN
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
-      <main className="max-w-4xl mx-auto px-6 py-10">
+      {/* 主要內容區域 */}
+      <main className="max-w-5xl mx-auto px-6 py-12">
         {selectedPost ? (
-          /* 單篇文章頁 */
-          <div className="space-y-6">
+          /* 單篇文章詳細內容 */
+          <div className="max-w-3xl mx-auto space-y-8">
             <button
               onClick={() => setSelectedSlug(null)}
-              className="inline-flex items-center text-sm text-slate-400 hover:text-indigo-400 transition-colors gap-2 group"
+              className="inline-flex items-center text-xs font-mono text-zinc-400 hover:text-amber-400 transition-colors gap-2 group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               {t.backToList}
             </button>
 
-            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 space-y-6 shadow-xl">
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                  <span className="flex items-center gap-1.5 bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-1 rounded-md font-medium">
-                    <Layers className="w-3.5 h-3.5" />
+            <article className="space-y-8">
+              <header className="space-y-4 border-b border-zinc-800/80 pb-8">
+                <div className="flex items-center gap-3 text-xs font-mono">
+                  <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-md">
                     {selectedPost.category}
                   </span>
-                  <span className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-md">
-                    <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="text-zinc-500 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
                     {selectedPost.date}
                   </span>
                 </div>
-                <h1 className="text-3xl font-extrabold text-white tracking-tight">{selectedPost.title}</h1>
-                <div className="flex flex-wrap gap-2">
-                  {selectedPost.tags?.map(tag => (
-                    <span key={tag} className="text-xs bg-slate-800/80 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-md flex items-center gap-1">
-                      <Tag className="w-3 h-3 text-indigo-400" /> {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
+
+                <h1 className="text-3xl sm:text-4xl font-bold text-zinc-100 tracking-tight leading-tight">
+                  {selectedPost.title}
+                </h1>
+
+                {selectedPost.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {selectedPost.tags.map(tag => (
+                      <span key={tag} className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <Tag className="w-3 h-3 text-zinc-500" /> {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </header>
 
               {selectedPost.coverUrl && (
-                <div className="overflow-hidden rounded-xl border border-slate-800">
-                  <img src={selectedPost.coverUrl} alt="Cover" className="w-full max-h-96 object-cover" />
+                <div className="rounded-2xl overflow-hidden border border-zinc-800/80 bg-zinc-900/50 shadow-2xl">
+                  <img src={selectedPost.coverUrl} alt="Cover" className="w-full max-h-[420px] object-cover" />
                 </div>
               )}
 
-              {/* 使用 react-markdown + SyntaxHighlighter 渲染正文 */}
-              <article className="prose prose-invert max-w-none border-t border-slate-800/80 pt-6 space-y-4">
+              <div className="prose prose-invert prose-zinc max-w-none text-zinc-300 leading-relaxed text-base space-y-4">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
-                    h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-white mt-6 mb-4" {...props} />,
-                    h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-slate-100 mt-5 mb-3 border-b border-slate-800 pb-2" {...props} />,
-                    h3: ({ node, ...props }) => <h3 className="text-lg font-semibold text-indigo-300 mt-4 mb-2" {...props} />,
-                    p: ({ node, ...props }) => <p className="text-slate-300 leading-relaxed text-base my-3" {...props} />,
-                    ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-1.5 text-slate-300 my-3" {...props} />,
-                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-1.5 text-slate-300 my-3" {...props} />,
+                    h1: ({ node, ...props }) => <h1 className="text-2xl font-semibold text-zinc-100 mt-8 mb-4 border-b border-zinc-800 pb-2" {...props} />,
+                    h2: ({ node, ...props }) => <h2 className="text-xl font-semibold text-zinc-100 mt-6 mb-3" {...props} />,
+                    h3: ({ node, ...props }) => <h3 className="text-lg font-semibold text-amber-400 mt-5 mb-2" {...props} />,
+                    p: ({ node, ...props }) => <p className="text-zinc-300 leading-relaxed text-base my-4" {...props} />,
+                    ul: ({ node, ...props }) => <ul className="list-disc list-inside space-y-2 text-zinc-300 my-4 pl-2" {...props} />,
+                    ol: ({ node, ...props }) => <ol className="list-decimal list-inside space-y-2 text-zinc-300 my-4 pl-2" {...props} />,
                     blockquote: ({ node, ...props }) => (
-                      <blockquote className="border-l-4 border-indigo-500 bg-indigo-950/20 pl-4 py-2 my-4 rounded-r text-slate-300 italic" {...props} />
+                      <blockquote className="border-l-2 border-amber-500/80 bg-amber-500/5 pl-4 py-3 my-6 rounded-r-md text-zinc-300 italic" {...props} />
                     ),
                     code({ node, inline, className, children, ...props }) {
                       const match = /language-(\w+)/.exec(className || '');
                       const language = match ? match[1] : '';
                       return !inline && language ? (
-                        <div className="my-4 rounded-xl overflow-hidden border border-slate-800 shadow-2xl">
-                          <div className="bg-slate-900 px-4 py-1.5 text-xs text-slate-400 border-b border-slate-800 font-mono flex justify-between items-center">
-                            <span>{language.toUpperCase()}</span>
+                        <div className="my-6 rounded-xl overflow-hidden border border-zinc-800/90 shadow-xl bg-[#090d16]">
+                          <div className="bg-zinc-900/80 px-4 py-2 text-xs font-mono text-zinc-400 border-b border-zinc-800/80 flex justify-between items-center">
+                            <span className="text-amber-400/90 font-semibold">{language.toLowerCase()}</span>
                           </div>
                           <SyntaxHighlighter
                             style={vscDarkPlus}
@@ -217,8 +224,9 @@ export default function App() {
                             customStyle={{
                               margin: 0,
                               padding: '1.25rem',
-                              background: '#090d16',
-                              fontSize: '0.9rem',
+                              background: 'transparent',
+                              fontSize: '0.875rem',
+                              lineHeight: '1.6',
                             }}
                             {...props}
                           >
@@ -226,111 +234,124 @@ export default function App() {
                           </SyntaxHighlighter>
                         </div>
                       ) : (
-                        <code className="bg-slate-800 text-indigo-300 px-1.5 py-0.5 rounded font-mono text-sm border border-slate-700" {...props}>
+                        <code className="bg-zinc-800/80 text-amber-300/90 px-1.5 py-0.5 rounded font-mono text-sm border border-zinc-700/60" {...props}>
                           {children}
                         </code>
                       );
                     },
-                    hr: () => <hr className="border-slate-800 my-6" />
+                    hr: () => <hr className="border-zinc-800/80 my-8" />
                   }}
                 >
                   {selectedPost.content}
                 </ReactMarkdown>
-              </article>
-            </div>
+              </div>
+            </article>
           </div>
         ) : (
-          /* 文章列表頁 (含分類過濾器) */
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-indigo-400" />
-                {t.allPosts}
-              </h2>
-              <p className="text-slate-400 text-sm mt-1">
-                {t.subtitle}
+          /* 首頁與文章列表 */
+          <div className="space-y-12">
+            {/* 個人簡介 Header Banner */}
+            <div className="border-b border-zinc-800/60 pb-10 space-y-4">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-100">
+                Jonah Yian
+              </h1>
+              <p className="text-zinc-400 max-w-2xl text-sm sm:text-base leading-relaxed">
+                {t.bio}
               </p>
             </div>
 
-            {/* 分類按鈕 Filter Bar */}
-            <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-800/80">
-              {CATEGORIES.map(cat => {
-                const catLabel = lang === 'en' ? cat.en : cat.zh;
-                const isSelected = selectedCategory === cat.id;
+            {/* 分類導覽 Filter Pills */}
+            <div className="space-y-6">
+              <div className="flex flex-wrap gap-2">
+                {CATEGORIES.map(cat => {
+                  const IconComp = cat.icon;
+                  const catLabel = lang === 'en' ? cat.en : cat.zh;
+                  const isSelected = selectedCategory === cat.id;
 
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className={`px-3.5 py-1.5 text-xs rounded-lg transition-all border ${
-                      isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20 font-medium'
-                        : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
-                    }`}
-                  >
-                    {catLabel}
-                  </button>
-                );
-              })}
-            </div>
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-zinc-100 text-zinc-950 shadow-sm font-semibold'
+                          : 'bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 border border-zinc-800/60'
+                      }`}
+                    >
+                      <IconComp className="w-3.5 h-3.5" />
+                      {catLabel}
+                    </button>
+                  );
+                })}
+              </div>
 
-            {/* 文章列表 */}
-            {filteredPosts.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2">
-                {filteredPosts.map(post => (
-                  <div
-                    key={post.slug}
-                    onClick={() => setSelectedSlug(post.slug)}
-                    className="bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/50 rounded-xl p-5 flex flex-col justify-between cursor-pointer transition-all hover:shadow-lg hover:shadow-indigo-500/5 group"
-                  >
-                    <div className="space-y-3">
-                      {post.coverUrl ? (
-                        <div className="h-44 overflow-hidden rounded-lg border border-slate-800/80 relative">
-                          <img src={post.coverUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          <span className="absolute top-2.5 left-2.5 bg-slate-950/80 backdrop-blur text-indigo-300 text-xs px-2.5 py-0.5 rounded-md border border-slate-700/80 font-medium">
-                            {post.category}
-                          </span>
+              {/* 文章列表網格 (Clean Minimalist Cards) */}
+              {filteredPosts.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {filteredPosts.map(post => (
+                    <article
+                      key={post.slug}
+                      onClick={() => setSelectedSlug(post.slug)}
+                      className="group cursor-pointer bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800/70 hover:border-zinc-700/80 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-sm"
+                    >
+                      <div className="space-y-4">
+                        {post.coverUrl ? (
+                          <div className="h-44 overflow-hidden rounded-xl bg-zinc-950 border border-zinc-800/60 relative">
+                            <img 
+                              src={post.coverUrl} 
+                              alt={post.title} 
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
+                            />
+                            <span className="absolute top-3 left-3 bg-zinc-950/80 backdrop-blur text-amber-400 text-[11px] font-mono px-2.5 py-0.5 rounded-md border border-zinc-800">
+                              {post.category}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="h-28 bg-zinc-950/40 rounded-xl border border-zinc-800/40 flex flex-col items-center justify-center text-zinc-600 gap-1">
+                            <ImageIcon className="w-5 h-5 text-zinc-600" />
+                            <span className="text-xs font-mono">{t.noCover}</span>
+                          </div>
+                        )}
+
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-xs font-mono text-zinc-500">
+                            <Calendar className="w-3.5 h-3.5" />
+                            <span>{post.date}</span>
+                          </div>
+
+                          <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
+                            {post.title}
+                          </h3>
+
+                          <p className="text-zinc-400 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                            {post.summary}
+                          </p>
                         </div>
-                      ) : (
-                        <div className="h-28 bg-slate-950/60 rounded-lg border border-slate-800/50 flex flex-col items-center justify-center text-slate-600 gap-1">
-                          <ImageIcon className="w-6 h-6" />
-                          <span className="text-xs">{t.noCover}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-2 text-xs text-slate-400">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                        <span>{post.date}</span>
                       </div>
 
-                      <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-2">
-                        {post.title}
-                      </h3>
-                      <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
-                        {post.summary}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center justify-between text-xs text-slate-500">
-                      <span className="font-mono text-slate-400 flex items-center gap-1">
-                        <Folder className="w-3 h-3 text-indigo-400" />
-                        {post.slug}
-                      </span>
-                      <span className="text-indigo-400 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                        {t.readMore} &rarr;
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 bg-slate-900/40 rounded-xl border border-slate-800/60 text-slate-500">
-                <p>{t.noPostsCategory}</p>
-              </div>
-            )}
+                      <div className="mt-5 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono text-zinc-500">
+                        <span>{post.slug}</span>
+                        <span className="text-amber-400/90 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                          {t.readMore} &rarr;
+                        </span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-20 bg-zinc-900/30 rounded-2xl border border-zinc-800/60 text-zinc-500 text-sm font-mono">
+                  <p>{t.noPostsCategory}</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
+
+      {/* 頁腳 Footer */}
+      <footer className="border-t border-zinc-800/60 mt-20 py-8 text-center text-xs font-mono text-zinc-600">
+        <p>© 2026 Jonah Yian. Crafted with React, Vite & Tailwind CSS.</p>
+      </footer>
     </div>
   );
 }
