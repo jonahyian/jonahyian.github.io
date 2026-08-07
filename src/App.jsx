@@ -5,11 +5,14 @@ import fm from 'front-matter';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Calendar, Tag, ArrowLeft, Image as ImageIcon, Globe, Terminal, Drum, Utensils, Cpu, Code2, User, Sparkles } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const markdownFiles = import.meta.glob('/src/content/posts/*/index.{zh,en}.md', { query: '?raw', import: 'default', eager: true });
 const imageFiles = import.meta.glob('/src/content/posts/*/*.{png,jpg,jpeg,webp,svg}', { eager: true });
 
-// 分類與圖示搭配（精緻有機設計）
+// 分類與圖示搭配
 const CATEGORIES = [
   { id: 'all', zh: '全部文章', en: 'All', icon: Sparkles },
   { id: '個人', zh: '個人', en: 'Personal', icon: User },
@@ -105,7 +108,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-zinc-200 font-sans selection:bg-amber-500 selection:text-zinc-950">
-      {/* 頂部極簡導覽列 Header */}
+      {/* Header */}
       <header className="border-b border-zinc-800/60 bg-[#0d1117]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div 
@@ -127,25 +130,25 @@ export default function App() {
             </div>
           </div>
 
-          {/* 語言切換選單 */}
-          <div className="flex items-center gap-1.5 bg-zinc-900/90 border border-zinc-800/80 p-1 rounded-full text-xs font-mono">
-            <Globe className="w-3.5 h-3.5 text-zinc-400 ml-2 mr-0.5" />
-            <button
+          {/* 語言切換選單 - 使用 Button 組件 */}
+          <div className="flex items-center gap-1 bg-zinc-900/90 border border-zinc-800/80 p-1 rounded-full text-xs font-mono">
+            <Globe className="w-3.5 h-3.5 text-zinc-400 ml-2 mr-1" />
+            <Button
+              variant={lang === 'zh' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setLang('zh')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                lang === 'zh' ? 'bg-amber-500/20 text-amber-300 font-medium border border-amber-500/30' : 'text-zinc-400 hover:text-zinc-200'
-              }`}
+              className={`h-7 px-3 text-xs rounded-full ${lang === 'zh' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-zinc-400'}`}
             >
               繁體中文
-            </button>
-            <button
+            </Button>
+            <Button
+              variant={lang === 'en' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => setLang('en')}
-              className={`px-3 py-1 rounded-full transition-all ${
-                lang === 'en' ? 'bg-amber-500/20 text-amber-300 font-medium border border-amber-500/30' : 'text-zinc-400 hover:text-zinc-200'
-              }`}
+              className={`h-7 px-3 text-xs rounded-full ${lang === 'en' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-zinc-400'}`}
             >
               EN
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -153,22 +156,22 @@ export default function App() {
       {/* 主要內容區域 */}
       <main className="max-w-5xl mx-auto px-6 py-12">
         {selectedPost ? (
-          /* 單篇文章詳細內容 */
+          /* 單篇文章頁面 */
           <div className="max-w-3xl mx-auto space-y-8">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setSelectedSlug(null)}
-              className="inline-flex items-center text-xs font-mono text-zinc-400 hover:text-amber-400 transition-colors gap-2 group"
+              className="text-xs font-mono text-zinc-400 hover:text-amber-400 transition-colors gap-2 group p-0 hover:bg-transparent"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               {t.backToList}
-            </button>
+            </Button>
 
             <article className="space-y-8">
               <header className="space-y-4 border-b border-zinc-800/80 pb-8">
                 <div className="flex items-center gap-3 text-xs font-mono">
-                  <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-md">
-                    {selectedPost.category}
-                  </span>
+                  <Badge variant="amber">{selectedPost.category}</Badge>
                   <span className="text-zinc-500 flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5" />
                     {selectedPost.date}
@@ -182,9 +185,9 @@ export default function App() {
                 {selectedPost.tags?.length > 0 && (
                   <div className="flex flex-wrap gap-2 pt-1">
                     {selectedPost.tags.map(tag => (
-                      <span key={tag} className="text-xs font-mono text-zinc-400 bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-full flex items-center gap-1">
+                      <Badge key={tag} variant="outline" className="flex items-center gap-1 font-normal">
                         <Tag className="w-3 h-3 text-zinc-500" /> {tag}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                 )}
@@ -248,9 +251,8 @@ export default function App() {
             </article>
           </div>
         ) : (
-          /* 首頁與文章列表 */
+          /* 文章列表 - 使用 shadcn/ui Card, Badge, Button 元件組裝 */
           <div className="space-y-12">
-            {/* 個人簡介 Header Banner */}
             <div className="border-b border-zinc-800/60 pb-10 space-y-4">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-100">
                 Jonah Yian
@@ -260,8 +262,8 @@ export default function App() {
               </p>
             </div>
 
-            {/* 分類導覽 Filter Pills */}
             <div className="space-y-6">
+              {/* 分類按鈕 - 使用 shadcn/ui Button */}
               <div className="flex flex-wrap gap-2">
                 {CATEGORIES.map(cat => {
                   const IconComp = cat.icon;
@@ -269,32 +271,34 @@ export default function App() {
                   const isSelected = selectedCategory === cat.id;
 
                   return (
-                    <button
+                    <Button
                       key={cat.id}
+                      variant={isSelected ? "default" : "outline"}
+                      size="sm"
                       onClick={() => setSelectedCategory(cat.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 ${
+                      className={`h-8 rounded-full text-xs font-medium gap-1.5 ${
                         isSelected
-                          ? 'bg-zinc-100 text-zinc-950 shadow-sm font-semibold'
-                          : 'bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 border border-zinc-800/60'
+                          ? 'bg-zinc-100 text-zinc-950 hover:bg-white font-semibold'
+                          : 'bg-zinc-900/60 text-zinc-400 hover:text-zinc-200 border-zinc-800/80'
                       }`}
                     >
                       <IconComp className="w-3.5 h-3.5" />
                       {catLabel}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
 
-              {/* 文章列表網格 (Clean Minimalist Cards) */}
+              {/* 文章列表網格 - 使用 shadcn/ui Card 元件 */}
               {filteredPosts.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2">
                   {filteredPosts.map(post => (
-                    <article
+                    <Card
                       key={post.slug}
                       onClick={() => setSelectedSlug(post.slug)}
-                      className="group cursor-pointer bg-zinc-900/40 hover:bg-zinc-900/70 border border-zinc-800/70 hover:border-zinc-700/80 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-sm"
+                      className="group cursor-pointer flex flex-col justify-between"
                     >
-                      <div className="space-y-4">
+                      <CardHeader className="p-5 space-y-4">
                         {post.coverUrl ? (
                           <div className="h-44 overflow-hidden rounded-xl bg-zinc-950 border border-zinc-800/60 relative">
                             <img 
@@ -302,9 +306,11 @@ export default function App() {
                               alt={post.title} 
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100" 
                             />
-                            <span className="absolute top-3 left-3 bg-zinc-950/80 backdrop-blur text-amber-400 text-[11px] font-mono px-2.5 py-0.5 rounded-md border border-zinc-800">
-                              {post.category}
-                            </span>
+                            <div className="absolute top-3 left-3">
+                              <Badge variant="amber" className="bg-zinc-950/80 backdrop-blur border-zinc-800">
+                                {post.category}
+                              </Badge>
+                            </div>
                           </div>
                         ) : (
                           <div className="h-28 bg-zinc-950/40 rounded-xl border border-zinc-800/40 flex flex-col items-center justify-center text-zinc-600 gap-1">
@@ -319,23 +325,23 @@ export default function App() {
                             <span>{post.date}</span>
                           </div>
 
-                          <h3 className="text-lg font-semibold text-zinc-100 group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
+                          <CardTitle className="text-lg group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
                             {post.title}
-                          </h3>
+                          </CardTitle>
 
-                          <p className="text-zinc-400 text-xs sm:text-sm line-clamp-2 leading-relaxed">
+                          <CardDescription className="text-zinc-400 line-clamp-2">
                             {post.summary}
-                          </p>
+                          </CardDescription>
                         </div>
-                      </div>
+                      </CardHeader>
 
-                      <div className="mt-5 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-xs font-mono text-zinc-500">
+                      <CardFooter className="px-5 py-3 text-zinc-500 flex justify-between items-center">
                         <span>{post.slug}</span>
                         <span className="text-amber-400/90 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                           {t.readMore} &rarr;
                         </span>
-                      </div>
-                    </article>
+                      </CardFooter>
+                    </Card>
                   ))}
                 </div>
               ) : (
@@ -348,9 +354,8 @@ export default function App() {
         )}
       </main>
 
-      {/* 頁腳 Footer */}
       <footer className="border-t border-zinc-800/60 mt-20 py-8 text-center text-xs font-mono text-zinc-600">
-        <p>© 2026 Jonah Yian. Crafted with React, Vite & Tailwind CSS.</p>
+        <p>© 2026 Jonah Yian. Built with React, Vite, shadcn/ui & Tailwind CSS.</p>
       </footer>
     </div>
   );
