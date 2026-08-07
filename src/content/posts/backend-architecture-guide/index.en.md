@@ -50,9 +50,15 @@ I prefer a **Domain-Driven Modular** mindset:
 Package resolution with `uv` written in Rust is **blazing fast** (seconds instead of minutes).
 
 #### 2. Native Vector Search with PostgreSQL + `pgvector`
+
+![PostgreSQL pgvector Architecture](./pgvector.jpg)
+
 No need to maintain complex vector databases. Native `pgvector` with HNSW index inside PostgreSQL handles millions of embeddings seamlessly alongside relational queries.
 
 #### 3. Structured JSON Logging with `structlog`
+
+![structlog JSON Console Output](./structlog.jpg)
+
 Console logs are readable, and tracing production logs in Grafana Loki or Cloud Logging with contextual JSON becomes effortless.
 
 ---

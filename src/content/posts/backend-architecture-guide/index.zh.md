@@ -52,9 +52,15 @@ summary: "這不是官方 Doc 翻譯，而是我在實際打造生產級非同�
 以前光是用 `pip install` 或 `poetry` 解依賴就要等半天。換成 Rust 寫的 `uv` 後，安裝套件基本都是**秒級完成**，而且 `uv.lock` 在跨團隊協作時極度穩定。
 
 #### 2. 不需要獨立向量資料庫，PostgreSQL + `pgvector` 就夠好用
+
+![PostgreSQL pgvector Architecture](./pgvector.jpg)
+
 很多 AI 專案動不動就引入全新的 Vector DB，增加了維運成本。其實直接在 PostgreSQL 18 掛載原生 `pgvector` 擴充，配合 HNSW 索引，在千萬級資料量下的語意搜尋與 RAG 檢索就已經快得驚人，還能直接跟傳統 SQL 做 Join！
 
 #### 3. Log 不要印純文字，用 `structlog` 輸出 JSON
+
+![structlog JSON Console Output](./structlog.jpg)
+
 不要再用 standard logging 印一些隨便的 text 了。改用 `structlog` 輸出單行 JSON，除了本地在 Console 看得很舒服，上雲端 (Grafana Loki 或 GCP Logging) 搜尋特定 `transaction_id` 或追蹤 line number 更是救命神器。
 
 ---
