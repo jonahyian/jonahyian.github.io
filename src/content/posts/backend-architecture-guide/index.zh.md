@@ -34,9 +34,9 @@ summary: "這不是官方 Doc 翻譯，而是我在實際打造生產級非同�
 │   │   ├── rate_limiter.py # 防刷 Rate Limiter
 │   │   └── settings.py     # 統一由 Pydantic 管理 .env
 │   ├── integrations/       # 第三方服務 (Redis、外部 API 封裝)
-│   └── modules/            # 💡 真正的業務核心 (高內聚獨立模組)
-│       └── posts/          # 例如文章/隨筆模組 (Schemas, Services, DB Models)
-│   ├── main.py             # 應用程式進入點與 Lifespan 機制
+│   ├── modules/            # 💡 真正的業務核心 (高內聚獨立模組)
+│   │   └── posts/          # 例如文章/隨筆模組 (Schemas, Services, DB Models)
+│   └── main.py             # 應用程式進入點與 Lifespan 機制
 ├── docker-compose.yml      # 一鍵拉起本地測試環境
 ├── pyproject.toml          # 採用超高速 uv 管理依賴
 └── uv.lock                 # 嚴格的依賴版本鎖定檔

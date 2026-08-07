@@ -32,9 +32,9 @@ I prefer a **Domain-Driven Modular** mindset:
 │   │   ├── logging_config.py # Structured JSON logging via structlog
 │   │   └── settings.py     # Pydantic environment configurations
 │   ├── integrations/       # External wrappers (Redis, Cloud SQL Proxy)
-│   └── modules/            # 💡 Core Business Logic (High Cohesion Modules)
-│       └── posts/          # e.g., Posts / Blog module (Schemas, Services, DB Models)
-│   ├── main.py             # ASGI entrypoint & lifespan
+│   ├── modules/            # 💡 Core Business Logic (High Cohesion Modules)
+│   │   └── posts/          # e.g., Posts / Blog module (Schemas, Services, DB Models)
+│   └── main.py             # ASGI entrypoint & lifespan
 ├── docker-compose.yml      # Local dev environment
 ├── pyproject.toml          # Fast package management via uv
 └── uv.lock                 # Strict dependency lockfile
