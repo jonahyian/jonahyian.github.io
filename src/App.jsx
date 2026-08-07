@@ -4,87 +4,179 @@ import remarkGfm from 'remark-gfm';
 import fm from 'front-matter';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { BookOpen, Calendar, Tag, ArrowLeft, Folder, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, Calendar, Tag, ArrowLeft, Folder, Image as ImageIcon, Globe, Layers } from 'lucide-react';
 
-// 使用 Vite 載入所有 .md 檔案的原始字串內容 (raw)
-const markdownFiles = import.meta.glob('/src/content/posts/*/index.md', { query: '?raw', import: 'default', eager: true });
+// 使用 Vite 載入所有 .zh.md 與 .en.md 檔案的原始內容
+const markdownFiles = import.meta.glob('/src/content/posts/*/index.{zh,en}.md', { query: '?raw', import: 'default', eager: true });
 const imageFiles = import.meta.glob('/src/content/posts/*/*.{png,jpg,jpeg,webp,svg}', { eager: true });
 
+// 分類定義與對應名稱
+const CATEGORIES = [
+  { id: 'all', zh: '全部文章', en: 'All' },
+  { id: '個人', zh: '個人', en: 'Personal' },
+  { id: 'AI', zh: 'AI', en: 'AI' },
+  { id: '前端', zh: '前端', en: 'Frontend' },
+  { id: '後端', zh: '後端', en: 'Backend' },
+  { id: '爵士鼓', zh: '爵士鼓', en: 'Jazz Drums' },
+  { id: '甜點', zh: '甜點', en: 'Desserts' },
+];
+
+// UI 常數與多語言對應表
+const UI_TEXT = {
+  zh: {
+    blogTitle: "Jonah's Blog",
+    allPosts: "文章列表",
+    backToList: "返回文章列表",
+    noCover: "無封面圖",
+    readMore: "閱讀全文",
+    subtitle: "分享 AI 技術、前後端開發、爵士鼓手隨筆與甜點探索。",
+    badge: "i18n & Category Enabled",
+    noPostsCategory: "此分類下暫無文章",
+  },
+  en: {
+    blogTitle: "Jonah's Blog",
+    allPosts: "Posts",
+    backToList: "Back to Posts",
+    noCover: "No Cover Image",
+    readMore: "Read More",
+    subtitle: "Sharing thoughts on AI, Fullstack Dev, Jazz Drums, and Desserts.",
+    badge: "i18n & Category Enabled",
+    noPostsCategory: "No posts in this category yet",
+  }
+};
+
 // 剖析 Markdown 與 Frontmatter
-const postsList = Object.entries(markdownFiles).map(([path, rawContent]) => {
-  const pathParts = path.split('/');
-  const slug = pathParts[pathParts.length - 2];
-  
-  const parsed = fm(typeof rawContent === 'string' ? rawContent : '');
-  const data = parsed.attributes || {};
-  const content = parsed.body || '';
+const parsePosts = () => {
+  const postsMap = { zh: [], en: [] };
 
-  const coverPath = Object.keys(imageFiles).find(img => img.includes(`/posts/${slug}/`));
-  const coverUrl = coverPath ? imageFiles[coverPath].default : null;
+  Object.entries(markdownFiles).forEach(([path, rawContent]) => {
+    const pathParts = path.split('/');
+    const slug = pathParts[pathParts.length - 2];
+    const fileName = pathParts[pathParts.length - 1];
+    const lang = fileName.includes('.en.md') ? 'en' : 'zh';
 
-  return {
-    slug,
-    folderPath: `src/content/posts/${slug}/`,
-    coverUrl,
-    title: data.title || slug,
-    date: data.date || '',
-    tags: data.tags || [],
-    summary: data.summary || '',
-    content,
-  };
-}).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const parsed = fm(typeof rawContent === 'string' ? rawContent : '');
+    const data = parsed.attributes || {};
+    const content = parsed.body || '';
+
+    const coverPath = Object.keys(imageFiles).find(img => img.includes(`/posts/${slug}/`));
+    const coverUrl = coverPath ? imageFiles[coverPath].default : null;
+
+    const postObj = {
+      slug,
+      lang,
+      folderPath: `src/content/posts/${slug}/index.${lang}.md`,
+      coverUrl,
+      title: data.title || slug,
+      date: data.date || '',
+      category: data.category || '個人',
+      tags: data.tags || [],
+      summary: data.summary || '',
+      content,
+    };
+
+    postsMap[lang].push(postObj);
+  });
+
+  postsMap.zh.sort((a, b) => new Date(b.date) - new Date(a.date));
+  postsMap.en.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return postsMap;
+};
+
+const allPostsMap = parsePosts();
 
 export default function App() {
+  const [lang, setLang] = useState('zh'); // 當前語言: 'zh' 或 'en'
+  const [selectedCategory, setSelectedCategory] = useState('all'); // 選擇的分類
   const [selectedSlug, setSelectedSlug] = useState(null);
-  const selectedPost = postsList.find(p => p.slug === selectedSlug);
+
+  const t = UI_TEXT[lang];
+
+  // 取得當前語言的文章列表
+  const currentPosts = allPostsMap[lang].length > 0 ? allPostsMap[lang] : allPostsMap.zh;
+
+  // 依分類過濾文章
+  const filteredPosts = selectedCategory === 'all'
+    ? currentPosts
+    : currentPosts.filter(p => {
+        if (lang === 'en') {
+          const catObj = CATEGORIES.find(c => c.id === p.category || c.en === p.category);
+          const targetCat = CATEGORIES.find(c => c.id === selectedCategory);
+          return catObj && targetCat && catObj.id === targetCat.id;
+        }
+        return p.category === selectedCategory;
+      });
+
+  const selectedPost = currentPosts.find(p => p.slug === selectedSlug);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
       {/* Header */}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSelectedSlug(null)}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setSelectedSlug(null); setSelectedCategory('all'); }}>
             <div className="p-2 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
               <Folder className="w-5 h-5" />
             </div>
-            <span className="font-bold text-lg tracking-wide text-white">Jonah's Blog</span>
+            <span className="font-bold text-lg tracking-wide text-white">{t.blogTitle}</span>
           </div>
-          <span className="text-xs text-slate-400 font-mono bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
-            Prism Syntax Highlighting Enabled
-          </span>
+
+          <div className="flex items-center gap-4">
+            {/* 語言切換按鈕 (i18n Switcher) */}
+            <div className="flex items-center bg-slate-800/90 rounded-lg p-1 border border-slate-700">
+              <Globe className="w-3.5 h-3.5 text-slate-400 ml-2 mr-1" />
+              <button
+                onClick={() => setLang('zh')}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+                  lang === 'zh' ? 'bg-indigo-600 text-white font-medium shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                中文
+              </button>
+              <button
+                onClick={() => setLang('en')}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+                  lang === 'en' ? 'bg-indigo-600 text-white font-medium shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                EN
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
       {/* Main Content Area */}
       <main className="max-w-4xl mx-auto px-6 py-10">
         {selectedPost ? (
-          /* 單篇文章頁 (Markdown 渲染) */
+          /* 單篇文章頁 */
           <div className="space-y-6">
             <button
               onClick={() => setSelectedSlug(null)}
               className="inline-flex items-center text-sm text-slate-400 hover:text-indigo-400 transition-colors gap-2 group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              返回文章列表
+              {t.backToList}
             </button>
 
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 space-y-6 shadow-xl">
               <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                  <span className="flex items-center gap-1.5 bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-1 rounded-md font-medium">
+                    <Layers className="w-3.5 h-3.5" />
+                    {selectedPost.category}
+                  </span>
                   <span className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-md">
                     <Calendar className="w-3.5 h-3.5 text-indigo-400" />
                     {selectedPost.date}
-                  </span>
-                  <span className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-md font-mono text-indigo-300">
-                    <Folder className="w-3.5 h-3.5 text-indigo-400" />
-                    {selectedPost.folderPath}
                   </span>
                 </div>
                 <h1 className="text-3xl font-extrabold text-white tracking-tight">{selectedPost.title}</h1>
                 <div className="flex flex-wrap gap-2">
                   {selectedPost.tags?.map(tag => (
-                    <span key={tag} className="text-xs bg-indigo-950/60 text-indigo-300 border border-indigo-800/50 px-2.5 py-1 rounded-md flex items-center gap-1">
-                      <Tag className="w-3 h-3" /> {tag}
+                    <span key={tag} className="text-xs bg-slate-800/80 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-md flex items-center gap-1">
+                      <Tag className="w-3 h-3 text-indigo-400" /> {tag}
                     </span>
                   ))}
                 </div>
@@ -148,62 +240,94 @@ export default function App() {
             </div>
           </div>
         ) : (
-          /* 文章列表頁 */
+          /* 文章列表頁 (含分類過濾器) */
           <div className="space-y-8">
             <div>
               <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                 <BookOpen className="w-6 h-6 text-indigo-400" />
-                所有文章 (Posts)
+                {t.allPosts}
               </h2>
               <p className="text-slate-400 text-sm mt-1">
-                文章採用 Markdown 格式編寫（<code className="text-indigo-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">index.md</code>），支援語法高亮。
+                {t.subtitle}
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              {postsList.map(post => (
-                <div
-                  key={post.slug}
-                  onClick={() => setSelectedSlug(post.slug)}
-                  className="bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/50 rounded-xl p-5 flex flex-col justify-between cursor-pointer transition-all hover:shadow-lg hover:shadow-indigo-500/5 group"
-                >
-                  <div className="space-y-3">
-                    {post.coverUrl ? (
-                      <div className="h-44 overflow-hidden rounded-lg border border-slate-800/80 relative">
-                        <img src={post.coverUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            {/* 分類按鈕 Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-800/80">
+              {CATEGORIES.map(cat => {
+                const catLabel = lang === 'en' ? cat.en : cat.zh;
+                const isSelected = selectedCategory === cat.id;
+
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-3.5 py-1.5 text-xs rounded-lg transition-all border ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20 font-medium'
+                        : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    {catLabel}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 文章列表 */}
+            {filteredPosts.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {filteredPosts.map(post => (
+                  <div
+                    key={post.slug}
+                    onClick={() => setSelectedSlug(post.slug)}
+                    className="bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/50 rounded-xl p-5 flex flex-col justify-between cursor-pointer transition-all hover:shadow-lg hover:shadow-indigo-500/5 group"
+                  >
+                    <div className="space-y-3">
+                      {post.coverUrl ? (
+                        <div className="h-44 overflow-hidden rounded-lg border border-slate-800/80 relative">
+                          <img src={post.coverUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <span className="absolute top-2.5 left-2.5 bg-slate-950/80 backdrop-blur text-indigo-300 text-xs px-2.5 py-0.5 rounded-md border border-slate-700/80 font-medium">
+                            {post.category}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="h-28 bg-slate-950/60 rounded-lg border border-slate-800/50 flex flex-col items-center justify-center text-slate-600 gap-1">
+                          <ImageIcon className="w-6 h-6" />
+                          <span className="text-xs">{t.noCover}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                        <span>{post.date}</span>
                       </div>
-                    ) : (
-                      <div className="h-28 bg-slate-950/60 rounded-lg border border-slate-800/50 flex flex-col items-center justify-center text-slate-600 gap-1">
-                        <ImageIcon className="w-6 h-6" />
-                        <span className="text-xs">無封面圖</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{post.date}</span>
+
+                      <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-2">
+                        {post.title}
+                      </h3>
+                      <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
+                        {post.summary}
+                      </p>
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-                    <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
-                      {post.summary}
-                    </p>
+                    <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center justify-between text-xs text-slate-500">
+                      <span className="font-mono text-slate-400 flex items-center gap-1">
+                        <Folder className="w-3 h-3 text-indigo-400" />
+                        {post.slug}
+                      </span>
+                      <span className="text-indigo-400 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                        {t.readMore} &rarr;
+                      </span>
+                    </div>
                   </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-mono text-slate-400 flex items-center gap-1">
-                      <Folder className="w-3 h-3 text-indigo-400" />
-                      {post.slug}
-                    </span>
-                    <span className="text-indigo-400 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                      閱讀全文 &rarr;
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-slate-900/40 rounded-xl border border-slate-800/60 text-slate-500">
+                <p>{t.noPostsCategory}</p>
+              </div>
+            )}
           </div>
         )}
       </main>
