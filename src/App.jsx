@@ -16,6 +16,7 @@ const CATEGORIES = [
   { id: '個人', zh: '個人', en: 'Personal' },
   { id: 'AI', zh: 'AI', en: 'AI' },
   { id: '前端', zh: '前端', en: 'Frontend' },
+  { id: '後端', zh: '後端', en: 'Backend' },
   { id: '爵士鼓', zh: '爵士鼓', en: 'Jazz Drums' },
   { id: '甜點', zh: '甜點', en: 'Desserts' },
 ];
@@ -28,7 +29,7 @@ const UI_TEXT = {
     backToList: "返回文章列表",
     noCover: "無封面圖",
     readMore: "閱讀全文",
-    subtitle: "分享 AI 技術、前端開發、爵士鼓手隨筆與甜點探索。",
+    subtitle: "分享 AI 技術、前後端開發、爵士鼓手隨筆與甜點探索。",
     badge: "i18n & Category Enabled",
     noPostsCategory: "此分類下暫無文章",
   },
@@ -38,7 +39,7 @@ const UI_TEXT = {
     backToList: "Back to Posts",
     noCover: "No Cover Image",
     readMore: "Read More",
-    subtitle: "Sharing thoughts on AI, Frontend, Jazz Drums, and Desserts.",
+    subtitle: "Sharing thoughts on AI, Fullstack Dev, Jazz Drums, and Desserts.",
     badge: "i18n & Category Enabled",
     noPostsCategory: "No posts in this category yet",
   }
