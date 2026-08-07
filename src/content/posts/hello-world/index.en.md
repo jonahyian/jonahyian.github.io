@@ -1,6 +1,7 @@
 ---
 title: "Hello, World! About Me & My Tech Journey"
 date: "2026-08-07"
+category: "Personal"
 tags: ["AI Engineer", "Jazz Drums", "Desserts", "Code Cleanliness"]
 summary: "Hi! I'm Jonah — an AI Engineer who loves desserts, plays jazz drums, and strongly believes that code readability is paramount."
 ---

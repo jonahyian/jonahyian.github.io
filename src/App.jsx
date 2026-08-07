@@ -4,49 +4,60 @@ import remarkGfm from 'remark-gfm';
 import fm from 'front-matter';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { BookOpen, Calendar, Tag, ArrowLeft, Folder, Image as ImageIcon, Globe } from 'lucide-react';
+import { BookOpen, Calendar, Tag, ArrowLeft, Folder, Image as ImageIcon, Globe, Layers } from 'lucide-react';
 
 // 使用 Vite 載入所有 .zh.md 與 .en.md 檔案的原始內容
 const markdownFiles = import.meta.glob('/src/content/posts/*/index.{zh,en}.md', { query: '?raw', import: 'default', eager: true });
 const imageFiles = import.meta.glob('/src/content/posts/*/*.{png,jpg,jpeg,webp,svg}', { eager: true });
 
+// 分類定義與對應名稱
+const CATEGORIES = [
+  { id: 'all', zh: '全部文章', en: 'All' },
+  { id: '個人', zh: '個人', en: 'Personal' },
+  { id: 'AI', zh: 'AI', en: 'AI' },
+  { id: '前端', zh: '前端', en: 'Frontend' },
+  { id: '爵士鼓', zh: '爵士鼓', en: 'Jazz Drums' },
+  { id: '甜點', zh: '甜點', en: 'Desserts' },
+];
+
 // UI 常數與多語言對應表
 const UI_TEXT = {
   zh: {
     blogTitle: "Jonah's Blog",
-    allPosts: "所有文章",
+    allPosts: "文章列表",
     backToList: "返回文章列表",
     noCover: "無封面圖",
     readMore: "閱讀全文",
-    subtitle: "文章採用獨立資料夾與雙語 Markdown 管理，支援多國語言切換。",
-    badge: "i18n & Markdown Enabled",
+    subtitle: "分享 AI 技術、前端開發、爵士鼓手隨筆與甜點探索。",
+    badge: "i18n & Category Enabled",
+    noPostsCategory: "此分類下暫無文章",
   },
   en: {
     blogTitle: "Jonah's Blog",
-    allPosts: "All Posts",
+    allPosts: "Posts",
     backToList: "Back to Posts",
     noCover: "No Cover Image",
     readMore: "Read More",
-    subtitle: "Posts organized in folder-per-post architecture with bilingual Markdown.",
-    badge: "i18n & Markdown Enabled",
+    subtitle: "Sharing thoughts on AI, Frontend, Jazz Drums, and Desserts.",
+    badge: "i18n & Category Enabled",
+    noPostsCategory: "No posts in this category yet",
   }
 };
 
-// 剖析 Markdown 與 Frontmatter，分類為 zh 與 en 兩組
+// 剖析 Markdown 與 Frontmatter
 const parsePosts = () => {
   const postsMap = { zh: [], en: [] };
 
   Object.entries(markdownFiles).forEach(([path, rawContent]) => {
     const pathParts = path.split('/');
     const slug = pathParts[pathParts.length - 2];
-    const fileName = pathParts[pathParts.length - 1]; // index.zh.md 或 index.en.md
+    const fileName = pathParts[pathParts.length - 1];
     const lang = fileName.includes('.en.md') ? 'en' : 'zh';
 
     const parsed = fm(typeof rawContent === 'string' ? rawContent : '');
     const data = parsed.attributes || {};
     const content = parsed.body || '';
 
-    // 自動找出同資料夾下的封面圖
     const coverPath = Object.keys(imageFiles).find(img => img.includes(`/posts/${slug}/`));
     const coverUrl = coverPath ? imageFiles[coverPath].default : null;
 
@@ -57,6 +68,7 @@ const parsePosts = () => {
       coverUrl,
       title: data.title || slug,
       date: data.date || '',
+      category: data.category || '個人',
       tags: data.tags || [],
       summary: data.summary || '',
       content,
@@ -75,12 +87,26 @@ const allPostsMap = parsePosts();
 
 export default function App() {
   const [lang, setLang] = useState('zh'); // 當前語言: 'zh' 或 'en'
+  const [selectedCategory, setSelectedCategory] = useState('all'); // 選擇的分類
   const [selectedSlug, setSelectedSlug] = useState(null);
 
   const t = UI_TEXT[lang];
 
-  // 取得當前語言的文章列表（若無英文版則回退使用中文版）
+  // 取得當前語言的文章列表
   const currentPosts = allPostsMap[lang].length > 0 ? allPostsMap[lang] : allPostsMap.zh;
+
+  // 依分類過濾文章
+  const filteredPosts = selectedCategory === 'all'
+    ? currentPosts
+    : currentPosts.filter(p => {
+        if (lang === 'en') {
+          const catObj = CATEGORIES.find(c => c.id === p.category || c.en === p.category);
+          const targetCat = CATEGORIES.find(c => c.id === selectedCategory);
+          return catObj && targetCat && catObj.id === targetCat.id;
+        }
+        return p.category === selectedCategory;
+      });
+
   const selectedPost = currentPosts.find(p => p.slug === selectedSlug);
 
   return (
@@ -88,7 +114,7 @@ export default function App() {
       {/* Header */}
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setSelectedSlug(null)}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setSelectedSlug(null); setSelectedCategory('all'); }}>
             <div className="p-2 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
               <Folder className="w-5 h-5" />
             </div>
@@ -116,10 +142,6 @@ export default function App() {
                 EN
               </button>
             </div>
-
-            <span className="hidden sm:inline-block text-xs text-slate-400 font-mono bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
-              {t.badge}
-            </span>
           </div>
         </div>
       </header>
@@ -127,7 +149,7 @@ export default function App() {
       {/* Main Content Area */}
       <main className="max-w-4xl mx-auto px-6 py-10">
         {selectedPost ? (
-          /* 單篇文章頁 (Markdown 渲染) */
+          /* 單篇文章頁 */
           <div className="space-y-6">
             <button
               onClick={() => setSelectedSlug(null)}
@@ -139,21 +161,21 @@ export default function App() {
 
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 space-y-6 shadow-xl">
               <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                  <span className="flex items-center gap-1.5 bg-indigo-950/80 text-indigo-300 border border-indigo-800/60 px-2.5 py-1 rounded-md font-medium">
+                    <Layers className="w-3.5 h-3.5" />
+                    {selectedPost.category}
+                  </span>
                   <span className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-md">
                     <Calendar className="w-3.5 h-3.5 text-indigo-400" />
                     {selectedPost.date}
-                  </span>
-                  <span className="flex items-center gap-1.5 bg-slate-800 px-2.5 py-1 rounded-md font-mono text-indigo-300">
-                    <Folder className="w-3.5 h-3.5 text-indigo-400" />
-                    {selectedPost.folderPath}
                   </span>
                 </div>
                 <h1 className="text-3xl font-extrabold text-white tracking-tight">{selectedPost.title}</h1>
                 <div className="flex flex-wrap gap-2">
                   {selectedPost.tags?.map(tag => (
-                    <span key={tag} className="text-xs bg-indigo-950/60 text-indigo-300 border border-indigo-800/50 px-2.5 py-1 rounded-md flex items-center gap-1">
-                      <Tag className="w-3 h-3" /> {tag}
+                    <span key={tag} className="text-xs bg-slate-800/80 text-slate-300 border border-slate-700 px-2.5 py-1 rounded-md flex items-center gap-1">
+                      <Tag className="w-3 h-3 text-indigo-400" /> {tag}
                     </span>
                   ))}
                 </div>
@@ -217,7 +239,7 @@ export default function App() {
             </div>
           </div>
         ) : (
-          /* 文章列表頁 */
+          /* 文章列表頁 (含分類過濾器) */
           <div className="space-y-8">
             <div>
               <h2 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -229,50 +251,82 @@ export default function App() {
               </p>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              {currentPosts.map(post => (
-                <div
-                  key={post.slug}
-                  onClick={() => setSelectedSlug(post.slug)}
-                  className="bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/50 rounded-xl p-5 flex flex-col justify-between cursor-pointer transition-all hover:shadow-lg hover:shadow-indigo-500/5 group"
-                >
-                  <div className="space-y-3">
-                    {post.coverUrl ? (
-                      <div className="h-44 overflow-hidden rounded-lg border border-slate-800/80 relative">
-                        <img src={post.coverUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            {/* 分類按鈕 Filter Bar */}
+            <div className="flex flex-wrap items-center gap-2 pb-2 border-b border-slate-800/80">
+              {CATEGORIES.map(cat => {
+                const catLabel = lang === 'en' ? cat.en : cat.zh;
+                const isSelected = selectedCategory === cat.id;
+
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-3.5 py-1.5 text-xs rounded-lg transition-all border ${
+                      isSelected
+                        ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20 font-medium'
+                        : 'bg-slate-900/80 text-slate-400 border-slate-800 hover:border-slate-700 hover:text-slate-200'
+                    }`}
+                  >
+                    {catLabel}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 文章列表 */}
+            {filteredPosts.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {filteredPosts.map(post => (
+                  <div
+                    key={post.slug}
+                    onClick={() => setSelectedSlug(post.slug)}
+                    className="bg-slate-900/60 border border-slate-800/80 hover:border-indigo-500/50 rounded-xl p-5 flex flex-col justify-between cursor-pointer transition-all hover:shadow-lg hover:shadow-indigo-500/5 group"
+                  >
+                    <div className="space-y-3">
+                      {post.coverUrl ? (
+                        <div className="h-44 overflow-hidden rounded-lg border border-slate-800/80 relative">
+                          <img src={post.coverUrl} alt={post.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          <span className="absolute top-2.5 left-2.5 bg-slate-950/80 backdrop-blur text-indigo-300 text-xs px-2.5 py-0.5 rounded-md border border-slate-700/80 font-medium">
+                            {post.category}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="h-28 bg-slate-950/60 rounded-lg border border-slate-800/50 flex flex-col items-center justify-center text-slate-600 gap-1">
+                          <ImageIcon className="w-6 h-6" />
+                          <span className="text-xs">{t.noCover}</span>
+                        </div>
+                      )}
+                      
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
+                        <span>{post.date}</span>
                       </div>
-                    ) : (
-                      <div className="h-28 bg-slate-950/60 rounded-lg border border-slate-800/50 flex flex-col items-center justify-center text-slate-600 gap-1">
-                        <ImageIcon className="w-6 h-6" />
-                        <span className="text-xs">{t.noCover}</span>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{post.date}</span>
+
+                      <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-2">
+                        {post.title}
+                      </h3>
+                      <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
+                        {post.summary}
+                      </p>
                     </div>
 
-                    <h3 className="text-lg font-bold text-slate-100 group-hover:text-indigo-400 transition-colors line-clamp-2">
-                      {post.title}
-                    </h3>
-                    <p className="text-slate-400 text-sm line-clamp-2 leading-relaxed">
-                      {post.summary}
-                    </p>
+                    <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center justify-between text-xs text-slate-500">
+                      <span className="font-mono text-slate-400 flex items-center gap-1">
+                        <Folder className="w-3 h-3 text-indigo-400" />
+                        {post.slug}
+                      </span>
+                      <span className="text-indigo-400 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                        {t.readMore} &rarr;
+                      </span>
+                    </div>
                   </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-800/50 flex items-center justify-between text-xs text-slate-500">
-                    <span className="font-mono text-slate-400 flex items-center gap-1">
-                      <Folder className="w-3 h-3 text-indigo-400" />
-                      {post.slug}
-                    </span>
-                    <span className="text-indigo-400 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                      {t.readMore} &rarr;
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-slate-900/40 rounded-xl border border-slate-800/60 text-slate-500">
+                <p>{t.noPostsCategory}</p>
+              </div>
+            )}
           </div>
         )}
       </main>

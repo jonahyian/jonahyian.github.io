@@ -1,6 +1,7 @@
 ---
 title: "Hello, World! 關於我與這座程式小島"
 date: "2026-08-07"
+category: "個人"
 tags: ["AI Engineer", "Jazz Drums", "Desserts", "Code Cleanliness"]
 summary: "嗨！我是 Jonah。這是一篇自我介紹——一名熱愛甜點與爵士鼓的 AI 工程師，同時對程式碼的可讀性有著極高標準的堅持。"
 ---
