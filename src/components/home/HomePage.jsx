@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import PostCard from '@/components/blog/PostCard';
+import GithubContributionCalendar from '@/components/home/GithubContributionCalendar';
 import { CV_DATA } from '@/data/cvData';
 import { UI_TEXT } from '@/data/siteData';
 
@@ -47,6 +48,9 @@ export default function HomePage({ lang, posts, onNavigate, onSelectPost }) {
           </Button>
         </div>
       </div>
+
+      {/* GitHub Contribution Graph 熱力圖 */}
+      <GithubContributionCalendar username="a94763075" />
 
       {/* Featured Posts */}
       <div className="space-y-6">
