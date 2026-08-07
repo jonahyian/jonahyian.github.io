@@ -4,39 +4,84 @@ import remarkGfm from 'remark-gfm';
 import fm from 'front-matter';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { BookOpen, Calendar, Tag, ArrowLeft, Folder, Image as ImageIcon } from 'lucide-react';
+import { BookOpen, Calendar, Tag, ArrowLeft, Folder, Image as ImageIcon, Globe } from 'lucide-react';
 
-// 使用 Vite 載入所有 .md 檔案的原始字串內容 (raw)
-const markdownFiles = import.meta.glob('/src/content/posts/*/index.md', { query: '?raw', import: 'default', eager: true });
+// 使用 Vite 載入所有 .zh.md 與 .en.md 檔案的原始內容
+const markdownFiles = import.meta.glob('/src/content/posts/*/index.{zh,en}.md', { query: '?raw', import: 'default', eager: true });
 const imageFiles = import.meta.glob('/src/content/posts/*/*.{png,jpg,jpeg,webp,svg}', { eager: true });
 
-// 剖析 Markdown 與 Frontmatter
-const postsList = Object.entries(markdownFiles).map(([path, rawContent]) => {
-  const pathParts = path.split('/');
-  const slug = pathParts[pathParts.length - 2];
-  
-  const parsed = fm(typeof rawContent === 'string' ? rawContent : '');
-  const data = parsed.attributes || {};
-  const content = parsed.body || '';
+// UI 常數與多語言對應表
+const UI_TEXT = {
+  zh: {
+    blogTitle: "Jonah's Blog",
+    allPosts: "所有文章",
+    backToList: "返回文章列表",
+    noCover: "無封面圖",
+    readMore: "閱讀全文",
+    subtitle: "文章採用獨立資料夾與雙語 Markdown 管理，支援多國語言切換。",
+    badge: "i18n & Markdown Enabled",
+  },
+  en: {
+    blogTitle: "Jonah's Blog",
+    allPosts: "All Posts",
+    backToList: "Back to Posts",
+    noCover: "No Cover Image",
+    readMore: "Read More",
+    subtitle: "Posts organized in folder-per-post architecture with bilingual Markdown.",
+    badge: "i18n & Markdown Enabled",
+  }
+};
 
-  const coverPath = Object.keys(imageFiles).find(img => img.includes(`/posts/${slug}/`));
-  const coverUrl = coverPath ? imageFiles[coverPath].default : null;
+// 剖析 Markdown 與 Frontmatter，分類為 zh 與 en 兩組
+const parsePosts = () => {
+  const postsMap = { zh: [], en: [] };
 
-  return {
-    slug,
-    folderPath: `src/content/posts/${slug}/`,
-    coverUrl,
-    title: data.title || slug,
-    date: data.date || '',
-    tags: data.tags || [],
-    summary: data.summary || '',
-    content,
-  };
-}).sort((a, b) => new Date(b.date) - new Date(a.date));
+  Object.entries(markdownFiles).forEach(([path, rawContent]) => {
+    const pathParts = path.split('/');
+    const slug = pathParts[pathParts.length - 2];
+    const fileName = pathParts[pathParts.length - 1]; // index.zh.md 或 index.en.md
+    const lang = fileName.includes('.en.md') ? 'en' : 'zh';
+
+    const parsed = fm(typeof rawContent === 'string' ? rawContent : '');
+    const data = parsed.attributes || {};
+    const content = parsed.body || '';
+
+    // 自動找出同資料夾下的封面圖
+    const coverPath = Object.keys(imageFiles).find(img => img.includes(`/posts/${slug}/`));
+    const coverUrl = coverPath ? imageFiles[coverPath].default : null;
+
+    const postObj = {
+      slug,
+      lang,
+      folderPath: `src/content/posts/${slug}/index.${lang}.md`,
+      coverUrl,
+      title: data.title || slug,
+      date: data.date || '',
+      tags: data.tags || [],
+      summary: data.summary || '',
+      content,
+    };
+
+    postsMap[lang].push(postObj);
+  });
+
+  postsMap.zh.sort((a, b) => new Date(b.date) - new Date(a.date));
+  postsMap.en.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  return postsMap;
+};
+
+const allPostsMap = parsePosts();
 
 export default function App() {
+  const [lang, setLang] = useState('zh'); // 當前語言: 'zh' 或 'en'
   const [selectedSlug, setSelectedSlug] = useState(null);
-  const selectedPost = postsList.find(p => p.slug === selectedSlug);
+
+  const t = UI_TEXT[lang];
+
+  // 取得當前語言的文章列表（若無英文版則回退使用中文版）
+  const currentPosts = allPostsMap[lang].length > 0 ? allPostsMap[lang] : allPostsMap.zh;
+  const selectedPost = currentPosts.find(p => p.slug === selectedSlug);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white">
@@ -47,11 +92,35 @@ export default function App() {
             <div className="p-2 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30">
               <Folder className="w-5 h-5" />
             </div>
-            <span className="font-bold text-lg tracking-wide text-white">Jonah's Blog</span>
+            <span className="font-bold text-lg tracking-wide text-white">{t.blogTitle}</span>
           </div>
-          <span className="text-xs text-slate-400 font-mono bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
-            Prism Syntax Highlighting Enabled
-          </span>
+
+          <div className="flex items-center gap-4">
+            {/* 語言切換按鈕 (i18n Switcher) */}
+            <div className="flex items-center bg-slate-800/90 rounded-lg p-1 border border-slate-700">
+              <Globe className="w-3.5 h-3.5 text-slate-400 ml-2 mr-1" />
+              <button
+                onClick={() => setLang('zh')}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+                  lang === 'zh' ? 'bg-indigo-600 text-white font-medium shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                中文
+              </button>
+              <button
+                onClick={() => setLang('en')}
+                className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+                  lang === 'en' ? 'bg-indigo-600 text-white font-medium shadow' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                EN
+              </button>
+            </div>
+
+            <span className="hidden sm:inline-block text-xs text-slate-400 font-mono bg-slate-800/80 px-3 py-1 rounded-full border border-slate-700">
+              {t.badge}
+            </span>
+          </div>
         </div>
       </header>
 
@@ -65,7 +134,7 @@ export default function App() {
               className="inline-flex items-center text-sm text-slate-400 hover:text-indigo-400 transition-colors gap-2 group"
             >
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-              返回文章列表
+              {t.backToList}
             </button>
 
             <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 space-y-6 shadow-xl">
@@ -153,15 +222,15 @@ export default function App() {
             <div>
               <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                 <BookOpen className="w-6 h-6 text-indigo-400" />
-                所有文章 (Posts)
+                {t.allPosts}
               </h2>
               <p className="text-slate-400 text-sm mt-1">
-                文章採用 Markdown 格式編寫（<code className="text-indigo-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">index.md</code>），支援語法高亮。
+                {t.subtitle}
               </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              {postsList.map(post => (
+              {currentPosts.map(post => (
                 <div
                   key={post.slug}
                   onClick={() => setSelectedSlug(post.slug)}
@@ -175,7 +244,7 @@ export default function App() {
                     ) : (
                       <div className="h-28 bg-slate-950/60 rounded-lg border border-slate-800/50 flex flex-col items-center justify-center text-slate-600 gap-1">
                         <ImageIcon className="w-6 h-6" />
-                        <span className="text-xs">無封面圖</span>
+                        <span className="text-xs">{t.noCover}</span>
                       </div>
                     )}
                     
@@ -198,7 +267,7 @@ export default function App() {
                       {post.slug}
                     </span>
                     <span className="text-indigo-400 font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                      閱讀全文 &rarr;
+                      {t.readMore} &rarr;
                     </span>
                   </div>
                 </div>
