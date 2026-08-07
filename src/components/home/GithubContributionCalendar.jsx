@@ -9,23 +9,21 @@ export default function GithubContributionCalendar({ username = "a94763075" }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 透過開放的 API 抓取 Github Contribution 數據
-    fetch(`https://github-contributions-api.johanneskrauser.workers.dev/v1/${username}`)
+    // 使用社群穩定且免費開放的 GitHub Contribution API v4
+    fetch(`https://github-contributions-api.jogruber.de/v4/${username}?y=last`)
       .then((res) => res.json())
       .then((resData) => {
         if (resData && resData.contributions) {
-          // 只取最近一年的數據 (約 365 天)
-          const recentContributions = resData.contributions.slice(-365).map((item) => ({
+          const formattedContributions = resData.contributions.map((item) => ({
             date: item.date,
             count: item.count,
-            level: item.intensity > 4 ? 4 : item.intensity,
+            level: item.level, // GitHub 官方等級 0 ~ 4
           }));
 
-          const total = recentContributions.reduce((acc, curr) => acc + curr.count, 0);
-          setData(recentContributions);
+          const total = resData.total ? resData.total.lastYear : formattedContributions.reduce((acc, curr) => acc + curr.count, 0);
+          setData(formattedContributions);
           setTotalContributions(total || 218);
         } else {
-          // Fallback 生成預設模擬熱力圖
           generateFallbackData();
         }
       })
@@ -44,7 +42,7 @@ export default function GithubContributionCalendar({ username = "a94763075" }) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      const count = Math.floor(Math.random() * 5); // 模擬提交數
+      const count = Math.floor(Math.random() * 4);
       total += count;
       mockData.push({
         date: dateStr,
@@ -57,14 +55,13 @@ export default function GithubContributionCalendar({ username = "a94763075" }) {
     setTotalContributions(total || 218);
   };
 
-  // 琥珀色與 GitHub 深色奢華配色 Theme
   const amberTheme = {
     dark: [
-      '#161b22', // 無提交 Level 0 (GitHub Dark BG)
-      '#0e4429', // 少量 Level 1
-      '#006d32', // 中量 Level 2
-      '#26a641', // 高量 Level 3
-      '#39d353', // 活躍 Level 4 (GitHub Classic Green)
+      '#161b22', // Level 0
+      '#0e4429', // Level 1
+      '#006d32', // Level 2
+      '#26a641', // Level 3
+      '#39d353', // Level 4
     ],
   };
 
